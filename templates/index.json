@@ -85,43 +85,84 @@
         "padding_bottom": 96
       }
     },
-    "image_banner": {
-      "type": "image-banner",
+    "category_grid_fjEjHL": {
+      "type": "category-grid",
       "blocks": {
-        "heading": {
-          "type": "heading",
+        "category_CWzbFn": {
+          "type": "category",
           "settings": {
-            "heading": "Browse our latest products",
-            "heading_size": "h0"
+            "collection": "frontpage",
+            "custom_title": "Machine Control",
+            "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
+            "custom_count": "120+ Products"
           }
         },
-        "button": {
-          "type": "buttons",
+        "category_bTJAAG": {
+          "type": "category",
           "settings": {
-            "button_label_1": "Shop all",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
+            "collection": "",
+            "custom_title": "Detection Systems",
+            "custom_description": "Locators, GPR, software solutions",
+            "custom_count": "85+ Products"
+          }
+        },
+        "category_AhPcJr": {
+          "type": "category",
+          "settings": {
+            "collection": "",
+            "custom_title": "Drones/UAS",
+            "custom_description": "Airframes, payloads, mapping software",
+            "custom_count": "65+ Products"
+          }
+        },
+        "category_aEYw9J": {
+          "type": "category",
+          "settings": {
+            "collection": "",
+            "custom_title": "GPS/GNSS & TPS",
+            "custom_description": "Base/rover, total stations, controllers",
+            "custom_count": "200+ Products"
           }
         }
       },
       "block_order": [
-        "heading",
-        "button"
+        "category_CWzbFn",
+        "category_bTJAAG",
+        "category_AhPcJr",
+        "category_aEYw9J"
       ],
+      "name": "Category Grid",
       "settings": {
-        "image_overlay_opacity": 40,
-        "image_height": "large",
-        "image_behavior": "none",
-        "desktop_content_position": "bottom-center",
-        "desktop_content_alignment": "center",
-        "show_text_box": false,
-        "color_scheme": "scheme-3",
-        "stack_images_on_mobile": false,
-        "mobile_content_alignment": "center",
-        "show_text_below": false
+        "title": "Shop by Category",
+        "subtitle": "Find exactly what you need with our curated product collections",
+        "heading_size": "h1",
+        "columns_desktop": 4,
+        "columns_tablet": 2,
+        "columns_mobile": "1",
+        "grid_gap": 3,
+        "card_border_radius": 8,
+        "hover_lift": 5,
+        "image_scale_hover": 105,
+        "show_product_count": true,
+        "show_button": true,
+        "show_arrow": true,
+        "button_text": "Browse",
+        "color_scheme": "",
+        "background_color": "#FFFFFF",
+        "heading_color": "#161818",
+        "text_color": "#666666",
+        "card_background_color": "#FFFFFF",
+        "card_heading_color": "#161818",
+        "card_text_color": "#666666",
+        "accent_color": "#E62525",
+        "button_background": "transparent",
+        "button_text_color": "#161818",
+        "button_border_color": "#E1E1E1",
+        "button_hover_background": "#E62525",
+        "button_hover_text_color": "#FFFFFF",
+        "button_border_radius": 4,
+        "padding_top": 36,
+        "padding_bottom": 36
       }
     },
     "featured_collection": {
@@ -155,7 +196,7 @@
   },
   "order": [
     "hero_section_cb97Pm",
-    "image_banner",
+    "category_grid_fjEjHL",
     "featured_collection"
   ]
 }
