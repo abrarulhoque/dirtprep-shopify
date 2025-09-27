@@ -1,0 +1,370 @@
+{{ 'section-hero.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  #Hero-{{ section.id }}::after {
+    opacity: {{ section.settings.image_overlay_opacity | divided_by: 100.0 }};
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign fetch_priority = 'auto'
+  if section.index == 1
+    assign fetch_priority = 'high'
+  endif
+-%}
+
+<section
+  id="Hero-{{ section.id }}"
+  class="hero-section color-{{ section.settings.color_scheme }} gradient{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+  style="--section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px;"
+>
+  {%- if section.settings.image != blank -%}
+    <div class="hero-section__media media">
+      {{
+        section.settings.image
+        | image_url: width: 3840
+        | image_tag:
+          width: section.settings.image.width,
+          height: section.settings.image.height,
+          class: 'hero-section__image',
+          sizes: '100vw',
+          widths: '375, 550, 750, 1100, 1500, 1780, 2000, 3000, 3840',
+          fetchpriority: fetch_priority
+      }}
+    </div>
+  {%- else -%}
+    <div class="hero-section__media media">
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    </div>
+  {%- endif -%}
+
+  <div class="hero-section__overlay"></div>
+
+  <div class="hero-section__content page-width{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+    <div class="hero-section__text-content">
+      {%- if section.settings.heading != blank -%}
+        <h1 class="hero-section__heading {{ section.settings.heading_size }}">
+          {{ section.settings.heading }}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="hero-section__text rte">
+          <p>{{ section.settings.text }}</p>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_search -%}
+        <div class="hero-section__search">
+          <search-form class="hero-search-form">
+            <form action="{{ routes.search_url }}" method="get" role="search" class="search hero-search">
+              <div class="field hero-search__field">
+                <label class="field__label visually-hidden" for="Hero-Search-{{ section.id }}">{{ 'general.search.search' | t }}</label>
+                <input
+                  class="search__input field__input hero-search__input"
+                  id="Hero-Search-{{ section.id }}"
+                  type="search"
+                  name="q"
+                  value="{{ search.terms | escape }}"
+                  placeholder="{{ section.settings.search_placeholder | default: 'Search for products, services, or solutions...' }}"
+                  autocorrect="off"
+                  autocomplete="off"
+                  autocapitalize="off"
+                >
+                <input type="hidden" name="options[prefix]" value="last">
+                <button class="search__button field__button hero-search__button" aria-label="{{ 'general.search.search' | t }}">
+                  {{ section.settings.search_button_text | default: 'Search' }}
+                </button>
+              </div>
+            </form>
+          </search-form>
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_quick_chips -%}
+        <div class="hero-section__quick-chips">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'quick_chip' -%}
+                {%- if block.settings.chip_text != blank -%}
+                  <a
+                    href="{{ block.settings.chip_link | default: routes.search_url | append: '?q=' | append: block.settings.chip_text | url_encode }}"
+                    class="hero-section__chip button button--secondary"
+                    {{ block.shopify_attributes }}
+                  >
+                    {{ block.settings.chip_text }}
+                  </a>
+                {%- endif -%}
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label_1 != blank or section.settings.button_label_2 != blank -%}
+        <div class="hero-section__buttons">
+          {%- if section.settings.button_label_1 != blank -%}
+            <a
+              {% if section.settings.button_link_1 == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.button_link_1 }}"
+              {% endif %}
+              class="button{% if section.settings.button_style_secondary_1 %} button--secondary{% else %} button--primary{% endif %}"
+            >
+              {{- section.settings.button_label_1 | escape -}}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.button_label_2 != blank -%}
+            <a
+              {% if section.settings.button_link_2 == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.button_link_2 }}"
+              {% endif %}
+              class="button{% if section.settings.button_style_secondary_2 %} button--secondary{% else %} button--primary{% endif %}"
+            >
+              {{- section.settings.button_label_2 | escape -}}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Section",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Background Image"
+    },
+    {
+      "type": "range",
+      "id": "image_overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "%",
+      "label": "Image overlay opacity",
+      "default": 40
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "What do you need to do today?",
+      "label": "Heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        },
+        {
+          "value": "hxl",
+          "label": "Extra large"
+        },
+        {
+          "value": "hxxl",
+          "label": "XX-Large"
+        }
+      ],
+      "default": "hxxl",
+      "label": "Heading size"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "default": "Shop construction technology—sales, setup & support by DirtPrep.",
+      "label": "Description"
+    },
+    {
+      "type": "header",
+      "content": "Search Bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "default": true,
+      "label": "Show search bar"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "default": "Search for products, services, or solutions...",
+      "label": "Search placeholder text"
+    },
+    {
+      "type": "text",
+      "id": "search_button_text",
+      "default": "Search",
+      "label": "Search button text"
+    },
+    {
+      "type": "header",
+      "content": "Quick Access Chips"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_chips",
+      "default": true,
+      "label": "Show quick access chips"
+    },
+    {
+      "type": "header",
+      "content": "Call to Action Buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label_1",
+      "default": "Book a Demo",
+      "label": "First button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link_1",
+      "label": "First button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_style_secondary_1",
+      "default": false,
+      "label": "Use outline button style for first button"
+    },
+    {
+      "type": "text",
+      "id": "button_label_2",
+      "default": "Request a Quote",
+      "label": "Second button label"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Second button link"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_style_secondary_2",
+      "default": true,
+      "label": "Use outline button style for second button"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 96
+    }
+  ],
+  "blocks": [
+    {
+      "type": "quick_chip",
+      "name": "Quick Access Chip",
+      "settings": [
+        {
+          "type": "text",
+          "id": "chip_text",
+          "label": "Chip text"
+        },
+        {
+          "type": "url",
+          "id": "chip_link",
+          "label": "Chip link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Section",
+      "blocks": [
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Machine Control"
+          }
+        },
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Base + Rover"
+          }
+        },
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Agtek Licenses"
+          }
+        },
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Drones"
+          }
+        },
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Models/Takeoffs"
+          }
+        },
+        {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Lasers"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
