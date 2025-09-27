@@ -139,28 +139,29 @@
   }
 
   .rotating-announcement-bar__messages {
+    display: flex;
     flex-direction: row;
     gap: 32px;
     justify-content: center;
+    align-items: center;
+    position: static;
   }
 
-  /* Show all messages on desktop if there are multiple */
-  .rotating-announcement-bar__messages[data-message-count="2"] .rotating-announcement-bar__message,
-  .rotating-announcement-bar__messages[data-message-count="3"] .rotating-announcement-bar__message,
-  .rotating-announcement-bar__messages[data-message-count="4"] .rotating-announcement-bar__message {
-    position: static;
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
+  /* Show all messages on desktop/tablet - disable rotation completely */
+  .rotating-announcement-bar__message {
+    position: static !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
     margin: 0 16px;
+    transition: none !important;
   }
 
-  /* Hide rotation on desktop when showing all messages */
-  .rotating-announcement-bar__messages[data-message-count="2"] .rotating-announcement-bar__message--active,
-  .rotating-announcement-bar__messages[data-message-count="3"] .rotating-announcement-bar__message--active,
-  .rotating-announcement-bar__messages[data-message-count="4"] .rotating-announcement-bar__message--active {
-    position: static;
-    transform: none;
+  /* Override active state on desktop/tablet */
+  .rotating-announcement-bar__message--active {
+    position: static !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

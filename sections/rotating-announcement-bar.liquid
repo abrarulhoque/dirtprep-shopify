@@ -64,6 +64,7 @@
         this.currentIndex = 0;
         this.interval = null;
         this.isVisible = !this.getCookieValue('announcement-bar-hidden');
+        this.isMobile = false;
 
         this.init();
       }
@@ -78,16 +79,73 @@
           this.closeButton.addEventListener('click', () => this.close());
         }
 
-        if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
-          this.startRotation();
-        }
+        // Check screen size and setup rotation accordingly
+        this.checkScreenSize();
 
-        // Pause rotation on hover
-        this.element.addEventListener('mouseenter', () => this.pauseRotation());
-        this.element.addEventListener('mouseleave', () => this.resumeRotation());
+        // Listen for resize events
+        window.addEventListener('resize', () => this.handleResize());
+
+        // Pause rotation on hover (only on mobile)
+        this.element.addEventListener('mouseenter', () => {
+          if (this.isMobile) this.pauseRotation();
+        });
+        this.element.addEventListener('mouseleave', () => {
+          if (this.isMobile) this.resumeRotation();
+        });
+      }
+
+      checkScreenSize() {
+        this.isMobile = window.innerWidth < 768;
+
+        if (this.isMobile) {
+          // Mobile: Enable rotation if auto-rotate is on and multiple messages
+          if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
+            this.startRotation();
+          }
+        } else {
+          // Desktop/Tablet: Disable rotation, show all messages
+          this.pauseRotation();
+          this.showAllMessages();
+        }
+      }
+
+      handleResize() {
+        const wasMobile = this.isMobile;
+        this.checkScreenSize();
+
+        // If we switched from mobile to desktop, stop rotation
+        if (wasMobile && !this.isMobile) {
+          this.pauseRotation();
+          this.showAllMessages();
+        }
+        // If we switched from desktop to mobile, start rotation
+        else if (!wasMobile && this.isMobile) {
+          this.hideAllMessages();
+          if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
+            this.startRotation();
+          }
+        }
+      }
+
+      showAllMessages() {
+        // Remove active class from current message
+        this.messages.forEach(message => {
+          message.classList.remove('rotating-announcement-bar__message--active');
+        });
+      }
+
+      hideAllMessages() {
+        // Reset to first message on mobile
+        this.messages.forEach(message => {
+          message.classList.remove('rotating-announcement-bar__message--active');
+        });
+        this.currentIndex = 0;
+        this.messages[this.currentIndex].classList.add('rotating-announcement-bar__message--active');
       }
 
       startRotation() {
+        if (!this.isMobile) return; // Only rotate on mobile
+
         const speed = parseInt(this.element.dataset.rotationSpeed) || 3000;
         this.interval = setInterval(() => this.nextMessage(), speed);
       }
@@ -100,12 +158,14 @@
       }
 
       resumeRotation() {
-        if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
+        if (this.isMobile && this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
           this.startRotation();
         }
       }
 
       nextMessage() {
+        if (!this.isMobile) return; // Only rotate on mobile
+
         this.messages[this.currentIndex].classList.remove('rotating-announcement-bar__message--active');
         this.currentIndex = (this.currentIndex + 1) % this.messages.length;
         this.messages[this.currentIndex].classList.add('rotating-announcement-bar__message--active');
