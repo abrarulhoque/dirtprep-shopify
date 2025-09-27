@@ -1,0 +1,544 @@
+{{ 'section-category-grid.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .category-grid {
+    background-color: {{ section.settings.background_color }};
+  }
+
+  .category-grid__title {
+    color: {{ section.settings.heading_color }};
+  }
+
+  .category-grid__subtitle {
+    color: {{ section.settings.text_color }};
+  }
+
+  .category-grid__item {
+    border-radius: {{ section.settings.card_border_radius }}px;
+    transition: all 0.3s ease;
+  }
+
+  .category-grid__item:hover {
+    transform: translateY(-{{ section.settings.hover_lift }}px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  .category-grid__image {
+    transition: transform 0.3s ease;
+  }
+
+  .category-grid__item:hover .category-grid__image {
+    transform: scale({{ section.settings.image_scale_hover | divided_by: 100.0 }});
+  }
+
+  .category-grid__content {
+    background-color: {{ section.settings.card_background_color }};
+  }
+
+  .category-grid__category-title {
+    color: {{ section.settings.card_heading_color }};
+  }
+
+  .category-grid__category-description {
+    color: {{ section.settings.card_text_color }};
+  }
+
+  .category-grid__product-count {
+    color: {{ section.settings.accent_color }};
+  }
+
+  .category-grid__button {
+    background-color: {{ section.settings.button_background }};
+    color: {{ section.settings.button_text_color }};
+    border: 1px solid {{ section.settings.button_border_color }};
+    border-radius: {{ section.settings.button_border_radius }}px;
+  }
+
+  .category-grid__button:hover {
+    background-color: {{ section.settings.button_hover_background }};
+    color: {{ section.settings.button_hover_text_color }};
+  }
+{%- endstyle -%}
+
+<div class="category-grid color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width section-{{ section.id }}-padding">
+    {%- unless section.settings.title == blank -%}
+      <div class="title-wrapper center">
+        <h2 class="category-grid__title inline-richtext {{ section.settings.heading_size }}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+          {{ section.settings.title }}
+        </h2>
+        {%- unless section.settings.subtitle == blank -%}
+          <p class="category-grid__subtitle{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+            {{ section.settings.subtitle }}
+          </p>
+        {%- endunless -%}
+      </div>
+    {%- endunless -%}
+
+    <div class="grid grid--{{ section.settings.columns_desktop }}-col-desktop grid--{{ section.settings.columns_tablet }}-col-tablet grid--{{ section.settings.columns_mobile }}-col-mobile gap-{{ section.settings.grid_gap }}">
+      {%- for block in section.blocks -%}
+        {%- assign collection = block.settings.collection -%}
+        {%- assign product_count = collection.products_count | default: 0 -%}
+
+        <div class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+             {{ block.shopify_attributes }}
+             {% if settings.animations_reveal_on_scroll %}
+               data-cascade
+               style="--animation-order: {{ forloop.index }};"
+             {% endif %}>
+
+          <div class="category-grid__item card{% if block.settings.collection == blank %} card--placeholder{% endif %}">
+            <div class="category-grid__image-wrapper">
+              {%- if collection.featured_image -%}
+                <img
+                  src="{{ collection.featured_image | image_url: width: 600 }}"
+                  alt="{{ collection.featured_image.alt | escape }}"
+                  class="category-grid__image"
+                  loading="lazy"
+                  width="{{ collection.featured_image.width }}"
+                  height="{{ collection.featured_image.height }}"
+                >
+              {%- elsif block.settings.custom_image -%}
+                <img
+                  src="{{ block.settings.custom_image | image_url: width: 600 }}"
+                  alt="{{ block.settings.custom_image.alt | escape }}"
+                  class="category-grid__image"
+                  loading="lazy"
+                  width="{{ block.settings.custom_image.width }}"
+                  height="{{ block.settings.custom_image.height }}"
+                >
+              {%- else -%}
+                <div class="category-grid__image placeholder-svg">
+                  {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                </div>
+              {%- endif -%}
+            </div>
+
+            <div class="category-grid__content card__content">
+              <div class="category-grid__header">
+                <h3 class="category-grid__category-title">
+                  {%- if block.settings.custom_title != blank -%}
+                    {{ block.settings.custom_title }}
+                  {%- elsif collection -%}
+                    {{ collection.title }}
+                  {%- else -%}
+                    Category Title
+                  {%- endif -%}
+                </h3>
+
+                {%- if section.settings.show_arrow -%}
+                  <span class="category-grid__arrow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7,7 17,7 17,17"></polyline>
+                    </svg>
+                  </span>
+                {%- endif -%}
+              </div>
+
+              {%- unless block.settings.custom_description == blank and collection.description == blank -%}
+                <p class="category-grid__category-description">
+                  {%- if block.settings.custom_description != blank -%}
+                    {{ block.settings.custom_description }}
+                  {%- else -%}
+                    {{ collection.description | strip_html | truncate: 120 }}
+                  {%- endif -%}
+                </p>
+              {%- endunless -%}
+
+              <div class="category-grid__footer">
+                {%- if section.settings.show_product_count -%}
+                  <span class="category-grid__product-count">
+                    {%- if block.settings.custom_count != blank -%}
+                      {{ block.settings.custom_count }}
+                    {%- elsif collection -%}
+                      {{ product_count }}
+                      {%- if product_count == 1 -%}
+                        {{ 'sections.category_grid.product' | t }}
+                      {%- else -%}
+                        {{ 'sections.category_grid.products' | t }}
+                      {%- endif -%}
+                    {%- else -%}
+                      0 {{ 'sections.category_grid.products' | t }}
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
+
+                {%- if section.settings.show_button -%}
+                  <a href="{{ collection.url | default: '#' }}" class="category-grid__button button button--small">
+                    {{ section.settings.button_text | default: 'Browse' }}
+                  </a>
+                {%- endif -%}
+              </div>
+            </div>
+
+            {%- if collection.url -%}
+              <a href="{{ collection.url }}" class="category-grid__link full-unstyled-link" aria-label="{{ collection.title | escape }}"></a>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Category Grid",
+  "tag": "section",
+  "class": "section section-category-grid",
+  "max_blocks": 12,
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "title",
+      "default": "Shop by Category",
+      "label": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "default": "Find exactly what you need with our curated product collections",
+      "label": "Subheading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        },
+        {
+          "value": "hxl",
+          "label": "Extra large"
+        },
+        {
+          "value": "hxxl",
+          "label": "XX-Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Number of columns on desktop"
+    },
+    {
+      "type": "range",
+      "id": "columns_tablet",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2,
+      "label": "Number of columns on tablet"
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "min": 1,
+      "max": 2,
+      "step": 1,
+      "default": 1,
+      "label": "Number of columns on mobile"
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "default": 3,
+      "label": "Grid gap"
+    },
+    {
+      "type": "header",
+      "content": "Card Settings"
+    },
+    {
+      "type": "range",
+      "id": "card_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "default": 8,
+      "unit": "px",
+      "label": "Card border radius"
+    },
+    {
+      "type": "range",
+      "id": "hover_lift",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "default": 5,
+      "unit": "px",
+      "label": "Card hover lift"
+    },
+    {
+      "type": "range",
+      "id": "image_scale_hover",
+      "min": 100,
+      "max": 120,
+      "step": 5,
+      "default": 105,
+      "unit": "%",
+      "label": "Image scale on hover"
+    },
+    {
+      "type": "header",
+      "content": "Display Options"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "default": true,
+      "label": "Show product count"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "default": true,
+      "label": "Show browse button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrow",
+      "default": true,
+      "label": "Show arrow icon"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "default": "Browse",
+      "label": "Button text"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#161818"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "card_background_color",
+      "label": "Card background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "card_heading_color",
+      "label": "Card heading color",
+      "default": "#161818"
+    },
+    {
+      "type": "color",
+      "id": "card_text_color",
+      "label": "Card text color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color (product count)",
+      "default": "#E62525"
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "Button background",
+      "default": "transparent"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text color",
+      "default": "#161818"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "Button border color",
+      "default": "#E1E1E1"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_background",
+      "label": "Button hover background",
+      "default": "#E62525"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Button hover text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "default": 4,
+      "unit": "px",
+      "label": "Button border radius"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "text",
+          "id": "custom_title",
+          "label": "Custom title",
+          "info": "Leave blank to use collection title"
+        },
+        {
+          "type": "textarea",
+          "id": "custom_description",
+          "label": "Custom description",
+          "info": "Leave blank to use collection description"
+        },
+        {
+          "type": "text",
+          "id": "custom_count",
+          "label": "Custom product count",
+          "info": "Leave blank to use actual product count (e.g., '120+ Products')"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom image",
+          "info": "Leave blank to use collection featured image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Grid",
+      "blocks": [
+        {
+          "type": "category",
+          "settings": {
+            "custom_title": "Machine Control",
+            "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
+            "custom_count": "120+ Products"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "custom_title": "Detection Systems",
+            "custom_description": "Locators, GPR, software solutions",
+            "custom_count": "85+ Products"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "custom_title": "Drones/UAS",
+            "custom_description": "Airframes, payloads, mapping software",
+            "custom_count": "65+ Products"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "custom_title": "GPS/GNSS & TPS",
+            "custom_description": "Base/rover, total stations, controllers",
+            "custom_count": "200+ Products"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
