@@ -1,5 +1,90 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
+    "hero_section_cb97Pm": {
+      "type": "hero-section",
+      "blocks": {
+        "quick_chip_MwKKHg": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Machine Control",
+            "chip_link": ""
+          }
+        },
+        "quick_chip_y6Jgbf": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Base + Rover",
+            "chip_link": ""
+          }
+        },
+        "quick_chip_ARzn8V": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Agtek Licenses",
+            "chip_link": ""
+          }
+        },
+        "quick_chip_whbH8q": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Drones",
+            "chip_link": ""
+          }
+        },
+        "quick_chip_eYmYkr": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Models/Takeoffs",
+            "chip_link": ""
+          }
+        },
+        "quick_chip_JGC8MU": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Lasers",
+            "chip_link": ""
+          }
+        }
+      },
+      "block_order": [
+        "quick_chip_MwKKHg",
+        "quick_chip_y6Jgbf",
+        "quick_chip_ARzn8V",
+        "quick_chip_whbH8q",
+        "quick_chip_eYmYkr",
+        "quick_chip_JGC8MU"
+      ],
+      "name": "Hero Section",
+      "settings": {
+        "image": "shopify://shop_images/hero-construction-CkBTgdX8.jpg",
+        "image_overlay_opacity": 40,
+        "color_scheme": "scheme-1",
+        "heading": "What do you need to do today?",
+        "heading_size": "hxxl",
+        "text": "Shop construction technology—sales, setup & support by DirtPrep.",
+        "show_search": true,
+        "search_placeholder": "Search for products, services, or solutions...",
+        "search_button_text": "Search",
+        "show_quick_chips": true,
+        "button_label_1": "Book a Demo",
+        "button_link_1": "",
+        "button_style_secondary_1": false,
+        "button_label_2": "Request a Quote",
+        "button_link_2": "",
+        "button_style_secondary_2": true,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
     "image_banner": {
       "type": "image-banner",
       "blocks": {
@@ -29,33 +114,32 @@
       "settings": {
         "image_overlay_opacity": 40,
         "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
         "image_behavior": "none",
+        "desktop_content_position": "bottom-center",
         "desktop_content_alignment": "center",
+        "show_text_box": false,
         "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
         "stack_images_on_mobile": false,
+        "mobile_content_alignment": "center",
         "show_text_below": false
       }
     },
     "featured_collection": {
       "type": "featured-collection",
       "settings": {
+        "collection": "all",
+        "products_to_show": 8,
         "title": "Featured products",
         "heading_size": "h2",
         "description": "",
         "show_description": false,
         "description_style": "body",
-        "collection": "all",
-        "products_to_show": 8,
         "columns_desktop": 4,
-        "color_scheme": "scheme-1",
+        "enable_desktop_slider": false,
         "full_width": false,
         "show_view_all": true,
         "view_all_style": "solid",
-        "enable_desktop_slider": false,
-        "swipe_on_mobile": false,
+        "color_scheme": "scheme-1",
         "image_ratio": "adapt",
         "image_shape": "default",
         "show_secondary_image": true,
@@ -63,12 +147,14 @@
         "show_rating": false,
         "quick_add": "none",
         "columns_mobile": "2",
+        "swipe_on_mobile": false,
         "padding_top": 44,
         "padding_bottom": 36
       }
     }
   },
   "order": [
+    "hero_section_cb97Pm",
     "image_banner",
     "featured_collection"
   ]
