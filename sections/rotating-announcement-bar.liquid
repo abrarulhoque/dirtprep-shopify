@@ -1,0 +1,242 @@
+{{ 'rotating-announcement-bar.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign messages_count = section.blocks.size
+  assign should_rotate = messages_count > 1 and section.settings.auto_rotate
+-%}
+
+{%- if messages_count > 0 -%}
+  <div
+    class="rotating-announcement-bar color-{{ section.settings.color_scheme }}"
+    data-auto-rotate="{{ should_rotate }}"
+    data-rotation-speed="{{ section.settings.change_slides_speed | times: 1000 }}"
+    data-section-id="{{ section.id }}"
+  >
+    <div class="page-width rotating-announcement-bar__container">
+      <div class="rotating-announcement-bar__content">
+        <div class="rotating-announcement-bar__messages" data-message-count="{{ messages_count }}">
+          {%- for block in section.blocks -%}
+            <div
+              class="rotating-announcement-bar__message {% if forloop.first %}rotating-announcement-bar__message--active{% endif %}"
+              data-index="{{ forloop.index0 }}"
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.text != blank -%}
+                {%- if block.settings.link != blank -%}
+                  <a
+                    href="{{ block.settings.link }}"
+                    class="rotating-announcement-bar__link"
+                    {% if block.settings.link contains 'http' %}target="_blank" rel="noopener noreferrer"{% endif %}
+                  >
+                    <span class="rotating-announcement-bar__text">{{ block.settings.text | upcase | escape }}</span>
+                  </a>
+                {%- else -%}
+                  <span class="rotating-announcement-bar__text">{{ block.settings.text | upcase | escape }}</span>
+                {%- endif -%}
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.show_close_button -%}
+          <button
+            type="button"
+            class="rotating-announcement-bar__close"
+            aria-label="Close announcement"
+            data-close-announcement
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class RotatingAnnouncementBar {
+      constructor(element) {
+        this.element = element;
+        this.messages = element.querySelectorAll('.rotating-announcement-bar__message');
+        this.closeButton = element.querySelector('[data-close-announcement]');
+        this.currentIndex = 0;
+        this.interval = null;
+        this.isVisible = !this.getCookieValue('announcement-bar-hidden');
+
+        this.init();
+      }
+
+      init() {
+        if (!this.isVisible) {
+          this.element.style.display = 'none';
+          return;
+        }
+
+        if (this.closeButton) {
+          this.closeButton.addEventListener('click', () => this.close());
+        }
+
+        if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
+          this.startRotation();
+        }
+
+        // Pause rotation on hover
+        this.element.addEventListener('mouseenter', () => this.pauseRotation());
+        this.element.addEventListener('mouseleave', () => this.resumeRotation());
+      }
+
+      startRotation() {
+        const speed = parseInt(this.element.dataset.rotationSpeed) || 3000;
+        this.interval = setInterval(() => this.nextMessage(), speed);
+      }
+
+      pauseRotation() {
+        if (this.interval) {
+          clearInterval(this.interval);
+          this.interval = null;
+        }
+      }
+
+      resumeRotation() {
+        if (this.element.dataset.autoRotate === 'true' && this.messages.length > 1) {
+          this.startRotation();
+        }
+      }
+
+      nextMessage() {
+        this.messages[this.currentIndex].classList.remove('rotating-announcement-bar__message--active');
+        this.currentIndex = (this.currentIndex + 1) % this.messages.length;
+        this.messages[this.currentIndex].classList.add('rotating-announcement-bar__message--active');
+      }
+
+      close() {
+        this.element.style.display = 'none';
+        this.setCookie('announcement-bar-hidden', 'true', 1); // Hide for 1 day
+        this.pauseRotation();
+      }
+
+      setCookie(name, value, days) {
+        const expires = new Date(Date.now() + days * 864e5).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+      }
+
+      getCookieValue(name) {
+        return document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const announcementBars = document.querySelectorAll('.rotating-announcement-bar');
+      announcementBars.forEach(bar => new RotatingAnnouncementBar(bar));
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Rotating Announcement Bar",
+  "class": "rotating-announcement-bar-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "label": "Auto-rotate messages",
+      "default": true,
+      "info": "Automatically cycle through multiple messages"
+    },
+    {
+      "type": "range",
+      "id": "change_slides_speed",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Rotation speed",
+      "default": 3,
+      "info": "How long each message displays before rotating"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_close_button",
+      "label": "Show close button",
+      "default": true,
+      "info": "Allow users to close the announcement bar"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "header",
+      "content": "Color Customization"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#E62525"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#FFFFFF"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Announcement Message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Message text",
+          "default": "Welcome to our store!"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)",
+          "info": "Make the message clickable"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rotating Announcement Bar",
+      "blocks": [
+        {
+          "type": "message",
+          "settings": {
+            "text": "Authorized Leica Dealer"
+          }
+        },
+        {
+          "type": "message",
+          "settings": {
+            "text": "On-Site Setup & Training"
+          }
+        },
+        {
+          "type": "message",
+          "settings": {
+            "text": "Request a Quote"
+          }
+        },
+        {
+          "type": "message",
+          "settings": {
+            "text": "Financing Available"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

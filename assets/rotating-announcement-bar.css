@@ -1,0 +1,211 @@
+/* Rotating Announcement Bar Styles */
+.rotating-announcement-bar {
+  background-color: #E62525; /* Secondary Background Color from CLAUDE.md */
+  color: #FFFFFF; /* Primary Text Color from CLAUDE.md */
+  position: relative;
+  z-index: 100;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rotating-announcement-bar__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 16px;
+  position: relative;
+}
+
+.rotating-announcement-bar__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.rotating-announcement-bar__messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+  min-height: 32px;
+}
+
+.rotating-announcement-bar__message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateX(16px);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  white-space: nowrap;
+  pointer-events: none;
+  text-align: center;
+  width: max-content;
+}
+
+.rotating-announcement-bar__message--active {
+  opacity: 1;
+  transform: translate(-50%, -50%) translateX(0);
+  pointer-events: auto;
+}
+
+.rotating-announcement-bar__text {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+}
+
+.rotating-announcement-bar__link {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.rotating-announcement-bar__link:hover {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.rotating-announcement-bar__close {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.rotating-announcement-bar__close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.rotating-announcement-bar__close svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+}
+
+/* Color scheme variations */
+.rotating-announcement-bar.color-scheme-1 {
+  background-color: var(--color-scheme-1-background, #FFFFFF);
+  color: var(--color-scheme-1-text, #161818);
+}
+
+.rotating-announcement-bar.color-scheme-2 {
+  background-color: var(--color-scheme-2-background, #E62525);
+  color: var(--color-scheme-2-text, #FFFFFF);
+}
+
+.rotating-announcement-bar.color-scheme-3 {
+  background-color: var(--color-scheme-3-background, #161818);
+  color: var(--color-scheme-3-text, #FFFFFF);
+}
+
+/* Custom color overrides */
+.rotating-announcement-bar[style*="background-color"] {
+  background-color: var(--custom-background-color) !important;
+}
+
+.rotating-announcement-bar[style*="color"] {
+  color: var(--custom-text-color) !important;
+}
+
+/* Responsive design */
+@media screen and (min-width: 768px) {
+  .rotating-announcement-bar__container {
+    padding: 12px 24px;
+    min-height: 52px;
+  }
+
+  .rotating-announcement-bar__text {
+    font-size: 15px;
+  }
+
+  .rotating-announcement-bar__messages {
+    flex-direction: row;
+    gap: 32px;
+    justify-content: center;
+  }
+
+  /* Show all messages on desktop if there are multiple */
+  .rotating-announcement-bar__messages[data-message-count="2"] .rotating-announcement-bar__message,
+  .rotating-announcement-bar__messages[data-message-count="3"] .rotating-announcement-bar__message,
+  .rotating-announcement-bar__messages[data-message-count="4"] .rotating-announcement-bar__message {
+    position: static;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    margin: 0 16px;
+  }
+
+  /* Hide rotation on desktop when showing all messages */
+  .rotating-announcement-bar__messages[data-message-count="2"] .rotating-announcement-bar__message--active,
+  .rotating-announcement-bar__messages[data-message-count="3"] .rotating-announcement-bar__message--active,
+  .rotating-announcement-bar__messages[data-message-count="4"] .rotating-announcement-bar__message--active {
+    position: static;
+    transform: none;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .rotating-announcement-bar__container {
+    padding: 12px 32px;
+  }
+
+  .rotating-announcement-bar__messages {
+    gap: 48px;
+  }
+
+  .rotating-announcement-bar__messages[data-message-count="2"] .rotating-announcement-bar__message,
+  .rotating-announcement-bar__messages[data-message-count="3"] .rotating-announcement-bar__message,
+  .rotating-announcement-bar__messages[data-message-count="4"] .rotating-announcement-bar__message {
+    margin: 0 24px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .rotating-announcement-bar__message {
+    transition: opacity 0.2s ease;
+  }
+
+  .rotating-announcement-bar__message--active {
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Focus styles for accessibility */
+.rotating-announcement-bar__link:focus-visible,
+.rotating-announcement-bar__close:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .rotating-announcement-bar {
+    border-bottom: 1px solid;
+  }
+
+  .rotating-announcement-bar__close {
+    border: 1px solid currentColor;
+  }
+}
