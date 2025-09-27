@@ -2,7 +2,11 @@
 
 {%- liquid
   assign messages_count = section.blocks.size
-  assign should_rotate = messages_count > 1 and section.settings.auto_rotate
+  if messages_count > 1 and section.settings.auto_rotate
+    assign should_rotate = true
+  else
+    assign should_rotate = false
+  endif
 -%}
 
 {%- if messages_count > 0 -%}
