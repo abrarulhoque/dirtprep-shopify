@@ -47,11 +47,15 @@
     if product_type_clean != blank and product_type_clean.size > 0
       assign cat_lower = product_type_clean | downcase
       unless category_list contains cat_lower
-        assign category_list = category_list | join: '|||' | append: '|||' | append: cat_lower | split: '|||'
+        if category_list.size == 0
+          assign category_list = cat_lower | split: '|||'
+        else
+          assign category_list = category_list | join: '|||' | append: '|||' | append: cat_lower | split: '|||'
+        endif
       endunless
     endif
   endfor
-  assign category_list = category_list | sort
+  assign category_list = category_list | sort | compact
 -%}
 
 <product-catalog-section
