@@ -126,6 +126,10 @@ if (!customElements.get('product-catalog-section')) {
       if (this.priceMinDisplay) this.priceMinDisplay.textContent = '$0';
       if (this.priceMaxDisplay) this.priceMaxDisplay.textContent = '$' + this.formatNumber(this.globalPriceMax);
 
+      // Also update the bottom static labels
+      const priceMaxLabel = this.querySelector('[data-price-max-label]');
+      if (priceMaxLabel) priceMaxLabel.textContent = '$' + this.formatNumber(this.globalPriceMax);
+
       this.updatePriceTrack();
 
       const onPriceChange = () => {
@@ -234,8 +238,27 @@ if (!customElements.get('product-catalog-section')) {
       if (overlay) overlay.addEventListener('click', closeMobile);
     }
 
-    // --- Apply Filters ---
+    // --- Apply Filters + Sort ---
     applyFilters() {
+      // 1) Sort products
+      this.sortProducts();
+
+      // 2) Reorder DOM elements according to sorted order
+      const container = this.querySelector('[data-products-container]');
+      const compactHeader = this.querySelector('.product-catalog__compact-header');
+      if (container) {
+        this.products.forEach(product => {
+          if (product.listEl) container.appendChild(product.listEl);
+          if (product.compactEl) container.appendChild(product.compactEl);
+        });
+        // Keep pagination at the end
+        const pagination = container.querySelector('.pagination-wrapper, nav.pagination');
+        if (pagination) container.appendChild(pagination);
+        // Keep compact header at the top
+        if (compactHeader) container.insertBefore(compactHeader, container.firstChild);
+      }
+
+      // 3) Filter visibility
       let visibleCount = 0;
 
       this.products.forEach(product => {
@@ -291,6 +314,27 @@ if (!customElements.get('product-catalog-section')) {
           productsContainer.style.display = '';
         }
       }
+    }
+
+    sortProducts() {
+      const sortBy = this.sortBy;
+      this.products.sort((a, b) => {
+        switch (sortBy) {
+          case 'title-ascending':
+            return a.title.localeCompare(b.title);
+          case 'title-descending':
+            return b.title.localeCompare(a.title);
+          case 'price-ascending':
+            return a.price - b.price;
+          case 'price-descending':
+            return b.price - a.price;
+          case 'created-ascending':
+          case 'created-descending':
+          case 'best-selling':
+          default:
+            return 0; // keep server-rendered order
+        }
+      });
     }
 
     updateFilterCount() {

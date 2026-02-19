@@ -43,8 +43,9 @@
   endcomment
   assign category_list = '' | split: ','
   for product in selected_collection.products
-    if product.type != blank
-      assign cat_lower = product.type | downcase
+    assign product_type_clean = product.type | strip
+    if product_type_clean != blank and product_type_clean.size > 0
+      assign cat_lower = product_type_clean | downcase
       unless category_list contains cat_lower
         assign category_list = category_list | join: '|||' | append: '|||' | append: cat_lower | split: '|||'
       endunless
