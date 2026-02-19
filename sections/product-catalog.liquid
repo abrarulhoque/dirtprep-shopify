@@ -1,533 +1,185 @@
 {%- comment -%}
-  Product Catalog — Standalone Section
-  A B2B-optimized product catalog with sidebar filters, search, sort, list/compact views.
-  Can be placed on any page via the theme editor.
-  Client-side filtering (matching Next.js prototype behavior).
+  Product Catalog Section
+  Shell template — JS fetches ALL products via AJAX and renders client-side
 {%- endcomment -%}
 
-{{ 'section-product-catalog.css' | asset_url | stylesheet_tag }}
-{{ 'component-price.css' | asset_url | stylesheet_tag }}
-{{ 'component-pagination.css' | asset_url | stylesheet_tag }}
-
-<script src="{{ 'product-catalog.js' | asset_url }}" defer="defer"></script>
-
-{%- style -%}
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
-{%- endstyle -%}
-
 {%- liquid
-  assign selected_collection = section.settings.collection
+  assign selected_collection = collections[section.settings.collection]
   if selected_collection == blank
     assign selected_collection = collections.all
   endif
-  assign products_per_page = section.settings.products_per_page | default: 30
-  assign default_view = section.settings.default_view | default: 'list'
-
-  comment
-    System tags to hide from display
-  endcomment
-  assign system_tag_prefixes = 'zoho-item,zoho-composite,goods,service' | split: ','
-
-  comment
-    Build unique category list from product types
-  endcomment
-  assign category_list = '' | split: ','
-  for product in selected_collection.products
-    assign product_type_clean = product.type | strip
-    if product_type_clean != blank and product_type_clean.size > 0
-      assign cat_lower = product_type_clean | downcase
-      unless category_list contains cat_lower
-        if category_list.size == 0
-          assign category_list = cat_lower | split: '|||'
-        else
-          assign category_list = category_list | join: '|||' | append: '|||' | append: cat_lower | split: '|||'
-        endif
-      endunless
-    endif
-  endfor
-  assign category_list = category_list | sort | compact
 -%}
 
+{{ 'section-product-catalog.css' | asset_url | stylesheet_tag }}
+
 <product-catalog-section
-  class="product-catalog color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding"
-  data-default-view="{{ default_view }}"
+  class="product-catalog"
+  data-section-id="{{ section.id }}"
+  data-default-view="{{ section.settings.default_view | default: 'list' }}"
+  data-collection="{{ selected_collection.handle }}"
 >
-  <div class="page-width">
-    {%- unless section.settings.heading == blank -%}
-      <div class="product-catalog__heading-wrapper">
-        <h2 class="product-catalog__heading inline-richtext {{ section.settings.heading_size }}">
-          {{ section.settings.heading }}
-        </h2>
-        {%- unless section.settings.subheading == blank -%}
-          <p class="product-catalog__subheading">{{ section.settings.subheading }}</p>
-        {%- endunless -%}
-      </div>
-    {%- endunless -%}
+  {%- comment -%} Section Header {%- endcomment -%}
+  <div class="product-catalog__header">
+    <h2 class="product-catalog__title">{{ section.settings.title | default: 'Product Catalog' }}</h2>
+    {%- if section.settings.description != blank -%}
+      <p class="product-catalog__description">{{ section.settings.description }}</p>
+    {%- endif -%}
   </div>
 
-  {%- paginate selected_collection.products by products_per_page -%}
-    <div class="product-catalog__wrapper page-width">
-
-      {%- comment -%} ======== DESKTOP SIDEBAR ======== {%- endcomment -%}
-      <aside class="product-catalog__sidebar">
-        {%- comment -%} Filter header {%- endcomment -%}
-        <div class="product-catalog__filter-header">
-          <h3 class="product-catalog__filter-title">
-            FILTERS
-            <span class="product-catalog__filter-count" data-filter-count data-count="0">0</span>
-          </h3>
-          <a href="#" class="product-catalog__filter-reset" data-filter-reset>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            Reset
-          </a>
-        </div>
-
-        {%- comment -%} Price Range {%- endcomment -%}
-        <div class="product-catalog__filter-section">
-          <h4 class="product-catalog__filter-section-title">PRICE RANGE</h4>
-          <div class="product-catalog__price-display">
-            <span data-price-min-display>$0</span>
-            <span class="product-catalog__price-separator">—</span>
-            <span data-price-max-display>$0</span>
-          </div>
-          <div class="product-catalog__price-slider">
-            <div class="product-catalog__price-track">
-              <div class="product-catalog__price-track-active" data-price-track-active></div>
-            </div>
-            <input type="range" min="0" max="1000" value="0" step="50" data-price-min>
-            <input type="range" min="0" max="1000" value="1000" step="50" data-price-max>
-          </div>
-          <div class="product-catalog__price-inputs">
-            <span>$0</span>
-            <span data-price-max-label>$0</span>
-          </div>
-        </div>
-
-        {%- comment -%} Categories {%- endcomment -%}
-        {%- if category_list.size > 0 -%}
-          <div class="product-catalog__filter-section">
-            <h4 class="product-catalog__filter-section-title">CATEGORIES</h4>
-            <input
-              type="text"
-              class="product-catalog__category-search"
-              placeholder="Search categories..."
-              data-category-search
-            >
-            <ul class="product-catalog__category-list">
-              {%- for cat in category_list -%}
-                {%- liquid
-                  assign cat_count = 0
-                  for product in selected_collection.products
-                    assign p_cat = product.type | downcase
-                    if p_cat == cat
-                      assign cat_count = cat_count | plus: 1
-                    endif
-                  endfor
-                  assign cat_display = cat | capitalize
-                -%}
-                <li class="product-catalog__category-item" data-category-item="{{ cat }}">
-                  <input type="checkbox" value="{{ cat }}" data-category-checkbox id="cat-{{ cat | handle }}-{{ section.id }}">
-                  <span class="product-catalog__category-name">
-                    <label for="cat-{{ cat | handle }}-{{ section.id }}">{{ cat_display }}</label>
-                  </span>
-                  <span class="product-catalog__category-count">{{ cat_count }}</span>
-                </li>
-              {%- endfor -%}
-            </ul>
-          </div>
-        {%- endif -%}
-      </aside>
-
-      {%- comment -%} ======== MOBILE SIDEBAR OVERLAY ======== {%- endcomment -%}
-      <div class="product-catalog__sidebar-overlay" data-mobile-filter-overlay></div>
-      <div class="product-catalog__sidebar-mobile" data-mobile-filter-sidebar>
-        <button class="product-catalog__mobile-close" data-mobile-filter-close aria-label="Close filters">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-        <div class="product-catalog__filter-header">
-          <h3 class="product-catalog__filter-title">
-            FILTERS
-            <span class="product-catalog__filter-count" data-count="0">0</span>
-          </h3>
-        </div>
-        {%- comment -%} Price Range (mobile) {%- endcomment -%}
-        <div class="product-catalog__filter-section">
-          <h4 class="product-catalog__filter-section-title">PRICE RANGE</h4>
-          <p class="product-catalog__price-display" style="font-size:1.2rem;color:#666;">Use desktop view for price filter</p>
-        </div>
-        {%- comment -%} Categories (mobile) {%- endcomment -%}
-        {%- if category_list.size > 0 -%}
-          <div class="product-catalog__filter-section">
-            <h4 class="product-catalog__filter-section-title">CATEGORIES</h4>
-            <ul class="product-catalog__category-list">
-              {%- for cat in category_list -%}
-                {%- assign cat_display = cat | capitalize -%}
-                <li class="product-catalog__category-item" data-category-item="{{ cat }}">
-                  <input type="checkbox" value="{{ cat }}" data-category-checkbox id="cat-mob-{{ cat | handle }}-{{ section.id }}">
-                  <span class="product-catalog__category-name">
-                    <label for="cat-mob-{{ cat | handle }}-{{ section.id }}">{{ cat_display }}</label>
-                  </span>
-                </li>
-              {%- endfor -%}
-            </ul>
-          </div>
-        {%- endif -%}
+  <div class="product-catalog__layout">
+    {%- comment -%} === SIDEBAR === {%- endcomment -%}
+    <aside class="product-catalog__sidebar" data-filter-sidebar>
+      {%- comment -%} Filters Header {%- endcomment -%}
+      <div class="product-catalog__filters-header">
+        <span class="product-catalog__filters-title">
+          FILTERS
+          <span class="product-catalog__filter-badge" data-filter-count data-count="0">0</span>
+        </span>
+        <a href="#" class="product-catalog__filters-reset" data-filter-reset>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </a>
       </div>
 
-      {%- comment -%} ======== MAIN CONTENT ======== {%- endcomment -%}
-      <div class="product-catalog__main">
-
-        {%- comment -%} Search Bar {%- endcomment -%}
-        <div class="product-catalog__search">
-          <input
-            type="search"
-            class="product-catalog__search-input"
-            placeholder="Search products, SKUs, categories..."
-            data-search-input
-            autocomplete="off"
-          >
+      {%- comment -%} Price Range {%- endcomment -%}
+      <div class="product-catalog__filter-group">
+        <h4 class="product-catalog__filter-label">PRICE RANGE</h4>
+        <div class="product-catalog__price-values">
+          <span data-price-min-display>$0</span>
+          <span>—</span>
+          <span data-price-max-display>$0</span>
         </div>
-
-        {%- comment -%} Toolbar {%- endcomment -%}
-        <div class="product-catalog__toolbar">
-          <div class="product-catalog__toolbar-left">
-            <div class="product-catalog__count">
-              <span data-product-count>
-                <strong>{{ selected_collection.products_count }}</strong> products
-              </span>
-            </div>
-
-            {%- comment -%} Mobile filter trigger {%- endcomment -%}
-            <button
-              class="product-catalog__mobile-filter-btn"
-              aria-label="Open filters"
-              data-mobile-filter-open
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14"></line>
-                <line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line>
-                <line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line>
-                <line x1="9" y1="8" x2="15" y2="8"></line>
-                <line x1="17" y1="16" x2="23" y2="16"></line>
-              </svg>
-            </button>
+        <div class="product-catalog__price-slider">
+          <div class="product-catalog__price-track">
+            <div class="product-catalog__price-track-active" data-price-track-active></div>
           </div>
-
-          <div class="product-catalog__toolbar-right">
-            {%- comment -%} Sort {%- endcomment -%}
-            <div class="product-catalog__sort">
-              <span class="product-catalog__sort-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
-              </span>
-              <select class="product-catalog__sort-select" data-sort-select>
-                {%- for option in selected_collection.sort_options -%}
-                  <option value="{{ option.value | escape }}"
-                    {% if option.value == selected_collection.sort_by or option.value == selected_collection.default_sort_by %}selected{% endif %}
-                  >{{ option.name | escape }}</option>
-                {%- endfor -%}
-              </select>
-            </div>
-
-            {%- comment -%} View toggle {%- endcomment -%}
-            <div class="product-catalog__view-toggle">
-              <button type="button" class="product-catalog__view-btn" data-view-btn="list" aria-label="List view">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                </svg>
-              </button>
-              <button type="button" class="product-catalog__view-btn" data-view-btn="compact" aria-label="Compact view">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                  <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <input type="range" min="0" max="0" value="0" data-price-min>
+          <input type="range" min="0" max="0" value="0" data-price-max>
         </div>
-
-        {%- comment -%} ======== PRODUCT LIST ======== {%- endcomment -%}
-        <div data-product-list>
-          {%- comment -%} Empty state {%- endcomment -%}
-          <div class="product-catalog__empty" data-empty-state style="display:none;">
-            <div class="product-catalog__empty-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-              </svg>
-            </div>
-            <h3>No products found</h3>
-            <p>Try adjusting your filters or search query.</p>
-          </div>
-
-          {%- if selected_collection.products.size > 0 -%}
-            <div data-products-container>
-              {%- comment -%} Compact View Header {%- endcomment -%}
-              <div class="product-catalog__compact-header">
-                <span class="col-icon"></span>
-                <span class="col-product">Product</span>
-                <span class="col-category">Category</span>
-                <span class="col-sku">SKU</span>
-                <span class="col-price">Price</span>
-              </div>
-
-              {%- for product in selected_collection.products -%}
-                {%- liquid
-                  assign product_type = product.type | default: ''
-                  assign first_variant = product.selected_or_first_available_variant
-                  assign product_price_cents = product.price | divided_by: 100.0
-
-                  comment
-                    Filter visible tags — hide system tags
-                  endcomment
-                  assign visible_tags_str = ''
-                  for tag in product.tags
-                    assign tag_lower = tag | downcase
-                    assign is_system = false
-                    for prefix in system_tag_prefixes
-                      if tag_lower contains prefix
-                        assign is_system = true
-                        break
-                      endif
-                    endfor
-                    assign tag_upper_check = tag | upcase
-                    if is_system == false
-                      if tag_upper_check != tag or tag contains ' '
-                        if visible_tags_str != ''
-                          assign visible_tags_str = visible_tags_str | append: '|||'
-                        endif
-                        assign visible_tags_str = visible_tags_str | append: tag
-                      endif
-                    endif
-                  endfor
-                  assign visible_tags = visible_tags_str | split: '|||'
-                -%}
-
-                {%- comment -%} === LIST VIEW ITEM === {%- endcomment -%}
-                <article
-                  class="product-catalog__item"
-                  data-product-item
-                  data-title="{{ product.title | escape }}"
-                  data-category="{{ product_type | downcase | escape }}"
-                  data-sku="{{ first_variant.sku | escape }}"
-                  data-price="{{ product_price_cents }}"
-                  data-tags="{{ product.tags | join: ' ' | downcase | escape }}"
-                >
-                  <div class="product-catalog__item-icon">
-                    {%- if product.featured_image -%}
-                      <img
-                        src="{{ product.featured_image | image_url: width: 120 }}"
-                        alt="{{ product.featured_image.alt | escape }}"
-                        loading="lazy"
-                        width="56"
-                        height="56"
-                      >
-                    {%- else -%}
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                      </svg>
-                    {%- endif -%}
-                  </div>
-
-                  <div class="product-catalog__item-content">
-                    <div class="product-catalog__item-header">
-                      <div class="product-catalog__item-title-wrap">
-                        <h3 class="product-catalog__item-title">
-                          <a href="{{ product.url }}">{{ product.title | escape }}</a>
-                        </h3>
-                        <div class="product-catalog__item-meta">
-                          {%- if product_type != blank -%}
-                            <span class="product-catalog__item-category">{{ product_type | escape }}</span>
-                          {%- endif -%}
-                          {%- if first_variant.sku != blank -%}
-                            <span class="product-catalog__item-sku">{{ first_variant.sku | escape }}</span>
-                          {%- endif -%}
-                        </div>
-                      </div>
-                      <div class="product-catalog__item-price">
-                        {{ product.price | money_without_trailing_zeros }}
-                      </div>
-                    </div>
-
-                    {%- if visible_tags.size > 0 and section.settings.show_tags -%}
-                      <div class="product-catalog__item-tags">
-                        {%- for tag in visible_tags limit: 5 -%}
-                          <span class="product-catalog__item-tag">{{ tag | escape }}</span>
-                        {%- endfor -%}
-                      </div>
-                    {%- endif -%}
-                  </div>
-
-                  <div class="product-catalog__item-arrow">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </div>
-                </article>
-
-                {%- comment -%} === COMPACT VIEW ITEM === {%- endcomment -%}
-                <a
-                  href="{{ product.url }}"
-                  class="product-catalog__compact-item"
-                  data-compact-item
-                >
-                  <div class="col-icon">
-                    {%- if product.featured_image -%}
-                      <img
-                        src="{{ product.featured_image | image_url: width: 64 }}"
-                        alt="{{ product.featured_image.alt | escape }}"
-                        loading="lazy"
-                        width="32"
-                        height="32"
-                      >
-                    {%- else -%}
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                      </svg>
-                    {%- endif -%}
-                  </div>
-                  <span class="col-product">{{ product.title | escape }}</span>
-                  <span class="col-category">
-                    {%- if product_type != blank -%}
-                      <span>{{ product_type | escape }}</span>
-                    {%- endif -%}
-                  </span>
-                  <span class="col-sku">{{ first_variant.sku | default: '—' | escape }}</span>
-                  <span class="col-price">{{ product.price | money_without_trailing_zeros }}</span>
-                </a>
-              {%- endfor -%}
-
-              {%- if paginate.pages > 1 -%}
-                {% render 'pagination', paginate: paginate, anchor: '' %}
-              {%- endif -%}
-            </div>
-          {%- endif -%}
+        <div class="product-catalog__price-labels">
+          <span>$0</span>
+          <span data-price-max-label>$0</span>
         </div>
+      </div>
+
+      {%- comment -%} Categories — dynamically populated by JS {%- endcomment -%}
+      <div class="product-catalog__filter-group">
+        <h4 class="product-catalog__filter-label">CATEGORIES</h4>
+        <div class="product-catalog__category-search-wrap">
+          <input type="text" class="product-catalog__category-search" data-category-search placeholder="Search categories...">
+        </div>
+        <ul class="product-catalog__category-list" data-category-list>
+          {%- comment -%} Populated by JS after AJAX load {%- endcomment -%}
+        </ul>
+      </div>
+    </aside>
+
+    {%- comment -%} Mobile filter overlay + sidebar {%- endcomment -%}
+    <div class="product-catalog__sidebar-overlay" data-mobile-filter-overlay></div>
+    <aside class="product-catalog__sidebar-mobile" data-mobile-filter-sidebar>
+      <div class="product-catalog__mobile-filter-header">
+        <span>Filters</span>
+        <button type="button" data-mobile-filter-close aria-label="Close filters">&times;</button>
+      </div>
+      {%- comment -%} Mobile filters duplicate — populated by JS too {%- endcomment -%}
+    </aside>
+
+    {%- comment -%} === MAIN CONTENT === {%- endcomment -%}
+    <div class="product-catalog__main" data-product-list>
+      {%- comment -%} Search Bar {%- endcomment -%}
+      <div class="product-catalog__search">
+        <svg class="product-catalog__search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="product-catalog__search-input" data-search-input placeholder="Search products, SKUs, categories...">
+      </div>
+
+      {%- comment -%} Toolbar {%- endcomment -%}
+      <div class="product-catalog__toolbar">
+        <div class="product-catalog__count" data-product-count>
+          <strong>0</strong> products
+        </div>
+        <button type="button" class="product-catalog__mobile-filter-btn" data-mobile-filter-open>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+          Filters
+        </button>
+        <div class="product-catalog__sort">
+          <svg class="product-catalog__sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+          <select class="product-catalog__sort-select" data-sort-select>
+            <option value="best-selling">Best selling</option>
+            <option value="title-ascending">Alphabetically, A-Z</option>
+            <option value="title-descending">Alphabetically, Z-A</option>
+            <option value="price-ascending">Price, low to high</option>
+            <option value="price-descending">Price, high to low</option>
+          </select>
+        </div>
+        <div class="product-catalog__view-toggle">
+          <button type="button" class="product-catalog__view-btn" data-view-btn="list" aria-label="List view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </button>
+          <button type="button" class="product-catalog__view-btn" data-view-btn="compact" aria-label="Compact view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {%- comment -%} Loading State {%- endcomment -%}
+      <div class="product-catalog__loading" data-loading>
+        <div class="product-catalog__spinner"></div>
+        <p>Loading products...</p>
+      </div>
+
+      {%- comment -%} Products Container — populated by JS {%- endcomment -%}
+      <div data-products-container style="display:none;"></div>
+
+      {%- comment -%} Empty State {%- endcomment -%}
+      <div class="product-catalog__empty" data-empty-state style="display:none;">
+        <div class="product-catalog__empty-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <h3>No products found</h3>
+        <p>Try adjusting your filters or search query.</p>
       </div>
     </div>
-  {%- endpaginate -%}
+  </div>
 </product-catalog-section>
+
+<script src="{{ 'product-catalog.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
   "name": "Product Catalog",
   "tag": "section",
-  "class": "section section-product-catalog",
-  "disabled_on": {
-    "groups": ["header", "footer"]
-  },
+  "class": "section-product-catalog",
   "settings": [
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Collection",
-      "info": "Select a collection to display. Leave empty to show all products."
-    },
-    {
-      "type": "range",
-      "id": "products_per_page",
-      "min": 12,
-      "max": 48,
-      "step": 6,
-      "default": 30,
-      "label": "Products per page"
-    },
-    {
-      "type": "header",
-      "content": "Heading"
-    },
-    {
-      "type": "inline_richtext",
-      "id": "heading",
-      "default": "Product Catalog",
-      "label": "Heading"
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Product Catalog"
     },
     {
       "type": "textarea",
-      "id": "subheading",
-      "label": "Subheading",
+      "id": "description",
+      "label": "Description",
       "default": "Browse our full range of construction technology products"
     },
     {
-      "type": "select",
-      "id": "heading_size",
-      "options": [
-        { "value": "h2", "label": "Small" },
-        { "value": "h1", "label": "Medium" },
-        { "value": "h0", "label": "Large" }
-      ],
-      "default": "h1",
-      "label": "Heading size"
-    },
-    {
-      "type": "header",
-      "content": "Display"
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
     },
     {
       "type": "select",
       "id": "default_view",
+      "label": "Default View",
       "options": [
         { "value": "list", "label": "List" },
         { "value": "compact", "label": "Compact" }
       ],
-      "default": "list",
-      "label": "Default view mode"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_tags",
-      "default": true,
-      "label": "Show product tags"
-    },
-    {
-      "type": "header",
-      "content": "Colors"
-    },
-    {
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "Color scheme",
-      "default": "scheme-1"
-    },
-    {
-      "type": "header",
-      "content": "Section padding"
-    },
-    {
-      "type": "range",
-      "id": "padding_top",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Top padding",
-      "default": 36
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "min": 0,
-      "max": 100,
-      "step": 4,
-      "unit": "px",
-      "label": "Bottom padding",
-      "default": 36
+      "default": "list"
     }
   ],
   "presets": [
