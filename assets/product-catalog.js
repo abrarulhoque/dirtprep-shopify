@@ -154,7 +154,8 @@ if (!customElements.get('product-catalog-section')) {
         const category = (p.product_type || '').trim();
         // Filter system tags
         const systemPrefixes = ['zoho-item', 'zoho-composite'];
-        const tags = (p.tags || '').split(',').map(t => t.trim()).filter(t => {
+        const rawTags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? p.tags.split(',') : []);
+        const tags = rawTags.map(t => String(t).trim()).filter(t => {
           if (!t) return false;
           const tl = t.toLowerCase();
           for (const prefix of systemPrefixes) {
@@ -248,6 +249,18 @@ if (!customElements.get('product-catalog-section')) {
           this.updateFilterCount();
         });
       });
+
+      // Category search
+      const catSearch = this.querySelector('[data-category-search]');
+      if (catSearch) {
+        catSearch.addEventListener('input', () => {
+          const q = catSearch.value.toLowerCase();
+          this.querySelectorAll('[data-category-item]').forEach(item => {
+            const name = item.dataset.categoryItem.toLowerCase();
+            item.style.display = name.includes(q) ? '' : 'none';
+          });
+        });
+      }
     }
 
     /* ============================================
