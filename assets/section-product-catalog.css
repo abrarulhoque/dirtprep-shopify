@@ -26,6 +26,46 @@
   max-height: calc(100vh - 4rem);
 }
 
+/* Fix: ensure sidebar facets take full width */
+.product-catalog__sidebar .facets-vertical {
+  width: 100%;
+}
+
+.product-catalog__sidebar .facets-vertical-sort {
+  width: 100%;
+}
+
+/* Fix: force sort control to render horizontally */
+.product-catalog__sidebar .facet-filters.sorting {
+  padding: 1.4rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.product-catalog__sidebar .facet-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.product-catalog__sidebar .facet-filters__label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.product-catalog__sidebar .facet-filters__sort {
+  width: 100%;
+}
+
+.product-catalog__sidebar .facets-wrapper {
+  width: 100%;
+}
+
 .product-catalog__sidebar .facets__form-vertical {
   padding: 0;
 }
