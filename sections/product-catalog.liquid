@@ -1,0 +1,541 @@
+{%- comment -%}
+  Product Catalog — Standalone Section
+  A B2B-optimized product catalog with sidebar filters, sort, list/compact views.
+  Can be placed on any page via the theme editor.
+  Uses Dawn's facets.js for AJAX filtering and facets.liquid for filter UI.
+{%- endcomment -%}
+
+{{ 'section-product-catalog.css' | asset_url | stylesheet_tag }}
+{{ 'template-collection.css' | asset_url | stylesheet_tag }}
+{{ 'component-facets.css' | asset_url | stylesheet_tag }}
+{{ 'component-price.css' | asset_url | stylesheet_tag }}
+{{ 'component-pagination.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'product-catalog.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+{%- liquid
+  assign selected_collection = section.settings.collection | default: collections.all
+  assign products_per_page = section.settings.products_per_page | default: 30
+  assign default_view = section.settings.default_view | default: 'list'
+  assign enable_filtering = section.settings.enable_filtering
+  assign enable_sorting = section.settings.enable_sorting
+
+  comment
+    System tags to hide from display (matching existing shop page behavior)
+  endcomment
+  assign system_tag_prefixes = 'zoho-item,zoho-composite,goods,service' | split: ','
+-%}
+
+<product-catalog-section
+  class="product-catalog color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding"
+  data-default-view="{{ default_view }}"
+>
+  <div class="page-width">
+    {%- unless section.settings.heading == blank -%}
+      <div class="product-catalog__heading-wrapper{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+        <h2 class="product-catalog__heading inline-richtext {{ section.settings.heading_size }}">
+          {{ section.settings.heading }}
+        </h2>
+        {%- unless section.settings.subheading == blank -%}
+          <p class="product-catalog__subheading">{{ section.settings.subheading }}</p>
+        {%- endunless -%}
+      </div>
+    {%- endunless -%}
+  </div>
+
+  {%- paginate selected_collection.products by products_per_page -%}
+    <div class="product-catalog__wrapper page-width">
+      {%- comment -%} Desktop Sidebar Filters {%- endcomment -%}
+      {%- if enable_filtering or enable_sorting -%}
+        <aside class="product-catalog__sidebar small-hide" aria-labelledby="CatalogFiltersTitle-{{ section.id }}">
+          <div class="facets-vertical">
+            {%- if enable_sorting -%}
+              <facet-filters-form class="facets facets-vertical-sort">
+                <form class="facets-vertical-form" id="FacetSortForm">
+                  <div class="facet-filters sorting caption">
+                    <div class="facet-filters__field">
+                      <h2 class="facet-filters__label caption-large text-body">
+                        <label for="SortBy">{{ 'products.facets.sort_by_label' | t }}</label>
+                      </h2>
+                      <div class="select">
+                        {%- assign sort_by = selected_collection.sort_by | default: selected_collection.default_sort_by -%}
+                        <select
+                          name="sort_by"
+                          class="facet-filters__sort select__select caption-large"
+                          id="SortBy"
+                          aria-describedby="a11y-refresh-page-message"
+                        >
+                          {%- for option in selected_collection.sort_options -%}
+                            <option
+                              value="{{ option.value | escape }}"
+                              {% if option.value == sort_by %}
+                                selected="selected"
+                              {% endif %}
+                            >
+                              {{ option.name | escape }}
+                            </option>
+                          {%- endfor -%}
+                        </select>
+                        <span class="svg-wrapper">
+                          {{- 'icon-caret.svg' | inline_asset_content -}}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </facet-filters-form>
+            {%- endif -%}
+
+            <aside
+              aria-labelledby="CatalogFiltersTitle-{{ section.id }}"
+              class="facets-wrapper"
+              id="main-collection-filters"
+              data-id="{{ section.id }}"
+            >
+              {% render 'facets',
+                results: selected_collection,
+                enable_filtering: enable_filtering,
+                enable_sorting: false,
+                filter_type: 'vertical',
+                paginate: paginate
+              %}
+            </aside>
+          </div>
+        </aside>
+      {%- endif -%}
+
+      {%- comment -%} Main content {%- endcomment -%}
+      <div class="product-catalog__main">
+        {%- comment -%} Toolbar {%- endcomment -%}
+        <div class="product-catalog__toolbar">
+          <div class="product-catalog__toolbar-left">
+            <div class="product-catalog__count" role="status">
+              <span id="ProductCount">
+                {%- if selected_collection.products_count == selected_collection.all_products_count -%}
+                  <strong>{{ selected_collection.products_count }}</strong> products
+                {%- else -%}
+                  <strong>{{ selected_collection.products_count }}</strong> of {{ selected_collection.all_products_count }} products
+                {%- endif -%}
+              </span>
+              {%- render 'loading-spinner' -%}
+            </div>
+
+            {%- comment -%} Mobile filter trigger {%- endcomment -%}
+            {%- if enable_filtering -%}
+              <button
+                class="product-catalog__mobile-filter-btn medium-hide large-up-hide"
+                aria-label="Open filters"
+                onclick="document.querySelector('.mobile-facets__wrapper summary').click()"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </button>
+            {%- endif -%}
+          </div>
+
+          <div class="product-catalog__toolbar-right">
+            {%- comment -%} Sort (mobile/inline) {%- endcomment -%}
+            {%- if enable_sorting -%}
+              <div class="product-catalog__sort small-hide">
+                <facet-filters-form>
+                  <form id="FacetSortDrawerForm">
+                    <div class="select">
+                      {%- assign sort_by = selected_collection.sort_by | default: selected_collection.default_sort_by -%}
+                      <select
+                        name="sort_by"
+                        class="select__select caption-large"
+                        id="SortBy-drawer"
+                        aria-describedby="a11y-refresh-page-message"
+                      >
+                        {%- for option in selected_collection.sort_options -%}
+                          <option
+                            value="{{ option.value | escape }}"
+                            {% if option.value == sort_by %}
+                              selected="selected"
+                            {% endif %}
+                          >
+                            {{ option.name | escape }}
+                          </option>
+                        {%- endfor -%}
+                      </select>
+                      <span class="svg-wrapper">
+                        {{- 'icon-caret.svg' | inline_asset_content -}}
+                      </span>
+                    </div>
+                  </form>
+                </facet-filters-form>
+              </div>
+            {%- endif -%}
+
+            {%- comment -%} View toggle {%- endcomment -%}
+            <div class="product-catalog__view-toggle small-hide">
+              <button
+                type="button"
+                class="product-catalog__view-btn"
+                data-view-btn="list"
+                aria-label="List view"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="product-catalog__view-btn"
+                data-view-btn="compact"
+                aria-label="Compact view"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <rect x1="3" y1="4" width="2" height="4" rx="0.5"></rect>
+                  <rect x1="3" y1="10" width="2" height="4" rx="0.5"></rect>
+                  <rect x1="3" y1="16" width="2" height="4" rx="0.5"></rect>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {%- comment -%} Product Grid Container — ID must match facets.js expectations {%- endcomment -%}
+        <div
+          class="product-catalog__products{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+          id="ProductGridContainer"
+          {% if settings.animations_reveal_on_scroll %}
+            data-cascade
+          {% endif %}
+        >
+          {%- if selected_collection.products.size == 0 -%}
+            <div class="collection" id="product-grid" data-id="{{ section.id }}">
+              <div class="loading-overlay gradient"></div>
+              <div class="product-catalog__empty">
+                <div class="product-catalog__empty-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                  </svg>
+                </div>
+                <h3>No products found</h3>
+                <p>Try adjusting your filters or search query.</p>
+              </div>
+            </div>
+          {%- else -%}
+            <div class="collection">
+              <div class="loading-overlay gradient"></div>
+              <div id="product-grid" data-id="{{ section.id }}" data-product-list>
+                {%- comment -%} ===== LIST VIEW ===== {%- endcomment -%}
+                <div data-view-list>
+                  {%- for product in selected_collection.products -%}
+                    {%- liquid
+                      assign product_type = product.type | default: ''
+                      assign first_variant = product.selected_or_first_available_variant
+
+                      comment
+                        Filter visible tags — hide system tags
+                      endcomment
+                      assign visible_tags = '' | split: ','
+                      for tag in product.tags
+                        assign tag_lower = tag | downcase
+                        assign is_system = false
+                        for prefix in system_tag_prefixes
+                          if tag_lower contains prefix
+                            assign is_system = true
+                            break
+                          endif
+                        endfor
+                        assign tag_upper_check = tag | upcase
+                        if is_system == false and tag_upper_check != tag or tag contains ' '
+                          assign visible_tags = visible_tags | append: tag | append: '|||'
+                        endif
+                      endfor
+                      assign visible_tags = visible_tags | split: '|||'
+                    -%}
+
+                    <article class="product-catalog__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
+                      {% if settings.animations_reveal_on_scroll %}
+                        data-cascade
+                        style="--animation-order: {{ forloop.index }};"
+                      {% endif %}
+                    >
+                      {%- comment -%} Product image / icon {%- endcomment -%}
+                      <div class="product-catalog__item-icon">
+                        {%- if product.featured_image -%}
+                          <img
+                            src="{{ product.featured_image | image_url: width: 120 }}"
+                            alt="{{ product.featured_image.alt | escape }}"
+                            loading="lazy"
+                            width="56"
+                            height="56"
+                          >
+                        {%- else -%}
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                          </svg>
+                        {%- endif -%}
+                      </div>
+
+                      {%- comment -%} Content {%- endcomment -%}
+                      <div class="product-catalog__item-content">
+                        <div class="product-catalog__item-header">
+                          <div class="product-catalog__item-title-wrap">
+                            <h3 class="product-catalog__item-title">
+                              <a href="{{ product.url }}">{{ product.title | escape }}</a>
+                            </h3>
+                            <div class="product-catalog__item-meta">
+                              {%- if product_type != blank -%}
+                                <span class="product-catalog__item-category">{{ product_type | escape }}</span>
+                              {%- endif -%}
+                              {%- if first_variant.sku != blank -%}
+                                <span class="product-catalog__item-sku">{{ first_variant.sku | escape }}</span>
+                              {%- endif -%}
+                            </div>
+                          </div>
+                          <div class="product-catalog__item-price">
+                            {%- render 'price', product: product -%}
+                          </div>
+                        </div>
+
+                        {%- if product.description != blank -%}
+                          <p class="product-catalog__item-description">
+                            {{ product.description | strip_html | truncate: 150 }}
+                          </p>
+                        {%- endif -%}
+
+                        {%- if visible_tags.size > 0 and section.settings.show_tags -%}
+                          <div class="product-catalog__item-tags">
+                            {%- for tag in visible_tags limit: 5 -%}
+                              <span class="product-catalog__item-tag">{{ tag | escape }}</span>
+                            {%- endfor -%}
+                          </div>
+                        {%- endif -%}
+                      </div>
+
+                      {%- comment -%} Arrow {%- endcomment -%}
+                      <div class="product-catalog__item-arrow small-hide">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </div>
+                    </article>
+                  {%- endfor -%}
+                </div>
+
+                {%- comment -%} ===== COMPACT VIEW ===== {%- endcomment -%}
+                <div class="product-catalog__list--compact" data-view-compact style="display: none;">
+                  <div class="product-catalog__compact-header">
+                    <span class="col-icon"></span>
+                    <span class="col-product">Product</span>
+                    <span class="col-category">Category</span>
+                    <span class="col-sku">SKU</span>
+                    <span class="col-price">Price</span>
+                  </div>
+
+                  {%- for product in selected_collection.products -%}
+                    {%- liquid
+                      assign product_type = product.type | default: ''
+                      assign first_variant = product.selected_or_first_available_variant
+                    -%}
+                    <a href="{{ product.url }}" class="product-catalog__compact-item">
+                      <div class="col-icon">
+                        {%- if product.featured_image -%}
+                          <img
+                            src="{{ product.featured_image | image_url: width: 64 }}"
+                            alt="{{ product.featured_image.alt | escape }}"
+                            loading="lazy"
+                            width="32"
+                            height="32"
+                          >
+                        {%- else -%}
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                          </svg>
+                        {%- endif -%}
+                      </div>
+                      <span class="col-product">{{ product.title | escape }}</span>
+                      <span class="col-category">
+                        {%- if product_type != blank -%}
+                          <span>{{ product_type | escape }}</span>
+                        {%- endif -%}
+                      </span>
+                      <span class="col-sku">{{ first_variant.sku | default: '—' | escape }}</span>
+                      <span class="col-price">{{ product.price | money }}</span>
+                    </a>
+                  {%- endfor -%}
+                </div>
+              </div>
+
+              {%- if paginate.pages > 1 -%}
+                {% render 'pagination', paginate: paginate, anchor: '' %}
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- endpaginate -%}
+</product-catalog-section>
+
+{% schema %}
+{
+  "name": "Product Catalog",
+  "tag": "section",
+  "class": "section section-product-catalog",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Select a collection to display. Leave empty to show all products."
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 12,
+      "max": 48,
+      "step": 6,
+      "default": 30,
+      "label": "Products per page"
+    },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "default": "Product Catalog",
+      "label": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Browse our full range of construction technology products"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        { "value": "h2", "label": "Small" },
+        { "value": "h1", "label": "Medium" },
+        { "value": "h0", "label": "Large" }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "header",
+      "content": "Display"
+    },
+    {
+      "type": "select",
+      "id": "default_view",
+      "options": [
+        { "value": "list", "label": "List" },
+        { "value": "compact", "label": "Compact" }
+      ],
+      "default": "list",
+      "label": "Default view mode"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "default": true,
+      "label": "Show product tags"
+    },
+    {
+      "type": "header",
+      "content": "Filtering & Sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "Enable filtering",
+      "info": "Configure filters in Shopify Admin → Navigation → Filters"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "Enable sorting"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Catalog"
+    }
+  ]
+}
+{% endschema %}
