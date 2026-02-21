@@ -170,7 +170,12 @@
         "description": "High-performance systems trusted by industry professionals.",
         "button_label": "Explore All Products",
         "button_link": "",
-        "product_list": [],
+        "product_list": [
+          "speed-e-namel®-semi-gloss-black",
+          "2-yr-dozer-customer-support",
+          "brackets-bracket-assy-radio-antenna-2133-03",
+          "2-yr-3d-excavator-components-bronze-ccp"
+        ],
         "max_products": 4
       }
     }
