@@ -130,13 +130,20 @@
             <div class="category-grid__content card__content">
               <div class="category-grid__header">
                 <h3 class="category-grid__category-title">
-                  {%- if block.settings.custom_title != blank -%}
-                    {{ block.settings.custom_title }}
-                  {%- elsif collection -%}
-                    {{ collection.title }}
+                  {%- if collection != blank and collection.url != blank -%}
+                    <a href="{{ collection.url }}" class="full-unstyled-link">
                   {%- else -%}
-                    Category Title
+                    <a href="#" class="full-unstyled-link">
                   {%- endif -%}
+                  
+                    {%- if block.settings.custom_title != blank -%}
+                      {{ block.settings.custom_title }}
+                    {%- elsif collection != blank -%}
+                      {{ collection.title }}
+                    {%- else -%}
+                      Category Title
+                    {%- endif -%}
+                  </a>
                 </h3>
 
                 {%- if section.settings.show_arrow -%}
@@ -178,16 +185,12 @@
                 {%- endif -%}
 
                 {%- if section.settings.show_button -%}
-                  <a href="{{ collection.url | default: '#' }}" class="category-grid__button button button--small">
+                  <a href="{{ collection.url | default: '#' }}" class="category-grid__button button button--small" style="position: relative; z-index: 2;">
                     {{ section.settings.button_text | default: 'Browse' }}
                   </a>
                 {%- endif -%}
               </div>
             </div>
-
-            {%- if collection.url -%}
-              <a href="{{ collection.url }}" class="category-grid__link full-unstyled-link" aria-label="{{ collection.title | escape }}"></a>
-            {%- endif -%}
           </div>
         </div>
       {%- endfor -%}
