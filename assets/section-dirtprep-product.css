@@ -337,9 +337,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: none !important;
+  box-shadow: none !important;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.dp-add-btn::after,
+.dp-add-btn::before {
+  display: none !important;
 }
 
 .dp-add-btn:hover {
