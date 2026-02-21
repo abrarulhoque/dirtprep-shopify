@@ -4,15 +4,29 @@
 
 .category-grid__title {
   margin-bottom: 1rem;
+  font-family: var(--font-heading, "Lexend Deca", sans-serif);
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+@media screen and (min-width: 750px) {
+  .category-grid__title {
+    font-size: 47px;
+    letter-spacing: -1px;
+  }
 }
 
 .category-grid__subtitle {
+  font-family: var(--font-sans, "Manrope", sans-serif);
   font-size: 1.125rem;
   line-height: 1.6;
   margin-bottom: 3rem;
   max-width: 50rem;
   margin-left: auto;
   margin-right: auto;
+  color: #4b5563;
 }
 
 .category-grid__item {
@@ -56,11 +70,13 @@
 }
 
 .category-grid__category-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-family: var(--font-heading, "Lexend Deca", sans-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
   line-height: 1.4;
   margin: 0;
   transition: color 0.3s ease;
+  letter-spacing: -0.01em;
 }
 
 .category-grid__arrow {
@@ -75,6 +91,7 @@
 }
 
 .category-grid__category-description {
+  font-family: var(--font-sans, "Manrope", sans-serif);
   font-size: 0.875rem;
   line-height: 1.5;
   margin: 0;
@@ -90,8 +107,10 @@
 }
 
 .category-grid__product-count {
+  font-family: var(--font-sans, "Manrope", sans-serif);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: #6b7280;
 }
 
 .category-grid__button {
@@ -112,10 +131,22 @@
 }
 
 .category-grid__item:hover .category-grid__category-title {
-  color: rgb(var(--color-button-text));
+  color: #E62525;
 }
 
 /* Grid utilities */
+.category-grid .grid {
+  display: grid !important;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category-grid .grid__item {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .gap-0 {
   gap: 0;
 }
