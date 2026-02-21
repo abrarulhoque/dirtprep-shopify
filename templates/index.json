@@ -1,4 +1,12 @@
-
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero": {
@@ -7,37 +15,43 @@
         "chip1": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Machine Control"
+            "chip_text": "Machine Control",
+            "chip_link": ""
           }
         },
         "chip2": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Base + Rover"
+            "chip_text": "Base + Rover",
+            "chip_link": ""
           }
         },
         "chip3": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Agtek Licenses"
+            "chip_text": "Agtek Licenses",
+            "chip_link": ""
           }
         },
         "chip4": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Drones"
+            "chip_text": "Drones",
+            "chip_link": ""
           }
         },
         "chip5": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Models/Takeoffs"
+            "chip_text": "Models/Takeoffs",
+            "chip_link": ""
           }
         },
         "chip6": {
           "type": "quick_chip",
           "settings": {
-            "chip_text": "Lasers"
+            "chip_text": "Lasers",
+            "chip_link": ""
           }
         }
       },
@@ -50,6 +64,7 @@
         "chip6"
       ],
       "settings": {
+        "image": "shopify://shop_images/ed9277_9002b56154364784a2a1d4a21cc2612cmv2.webp",
         "image_overlay_opacity": 40,
         "color_scheme": "scheme-1",
         "heading": "Precision Equipment for Earthmoving & Construction",
@@ -60,10 +75,10 @@
         "search_button_text": "Search",
         "show_quick_chips": true,
         "button_label_1": "Book a Demo",
-        "button_link_1": "shopify:\/\/collections\/all",
+        "button_link_1": "shopify://collections/all",
         "button_style_secondary_1": false,
         "button_label_2": "Request a Quote",
-        "button_link_2": "shopify:\/\/collections\/all",
+        "button_link_2": "shopify://collections/all",
         "button_style_secondary_2": true,
         "padding_top": 96,
         "padding_bottom": 96
@@ -75,6 +90,7 @@
         "cat1": {
           "type": "category",
           "settings": {
+            "collection": "",
             "custom_title": "Machine Control",
             "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
             "custom_count": "120+ Products"
@@ -83,6 +99,7 @@
         "cat2": {
           "type": "category",
           "settings": {
+            "collection": "",
             "custom_title": "Detection Systems",
             "custom_description": "Locators, GPR, software solutions",
             "custom_count": "85+ Products"
@@ -91,6 +108,7 @@
         "cat3": {
           "type": "category",
           "settings": {
+            "collection": "",
             "custom_title": "Drones/UAS",
             "custom_description": "Airframes, payloads, mapping software",
             "custom_count": "65+ Products"
@@ -99,6 +117,7 @@
         "cat4": {
           "type": "category",
           "settings": {
+            "collection": "",
             "custom_title": "GPS/GNSS & TPS",
             "custom_description": "Base/rover, total stations, controllers",
             "custom_count": "200+ Products"
@@ -127,18 +146,18 @@
         "show_arrow": false,
         "button_text": "Browse",
         "color_scheme": "scheme-1",
-        "background_color": "#F9F9F9",
+        "background_color": "#f9f9f9",
         "heading_color": "#171818",
         "text_color": "#6b7280",
-        "card_background_color": "#FFFFFF",
+        "card_background_color": "#ffffff",
         "card_heading_color": "#171818",
         "card_text_color": "#6b7280",
-        "accent_color": "#E62525",
-        "button_background": "transparent",
+        "accent_color": "#e62525",
+        "button_background": "rgba(0,0,0,0)",
         "button_text_color": "#161818",
-        "button_border_color": "#E1E1E1",
-        "button_hover_background": "#E62525",
-        "button_hover_text_color": "#FFFFFF",
+        "button_border_color": "#e1e1e1",
+        "button_hover_background": "#e62525",
+        "button_hover_text_color": "#ffffff",
         "button_border_radius": 0,
         "padding_top": 96,
         "padding_bottom": 96
@@ -150,6 +169,8 @@
         "heading": "Featured Equipment",
         "description": "High-performance systems trusted by industry professionals.",
         "button_label": "Explore All Products",
+        "button_link": "",
+        "product_list": [],
         "max_products": 4
       }
     }
