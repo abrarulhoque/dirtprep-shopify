@@ -93,37 +93,37 @@
             "collection": "machine-control",
             "custom_title": "Machine Control",
             "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
-            "custom_count": "120+ Products",
+            "custom_count": "175+ Products",
             "custom_image": "shopify://shop_images/ChatGPT_Image_Feb_21_2026_01_01_51_PM.png"
           }
         },
         "cat2": {
           "type": "category",
           "settings": {
-            "collection": "",
+            "collection": "detection-system",
             "custom_title": "Detection Systems",
             "custom_description": "Locators, GPR, software solutions",
-            "custom_count": "85+ Products",
+            "custom_count": "15+ Products",
             "custom_image": "shopify://shop_images/ChatGPT_Image_Feb_21_2026_01_01_54_PM.png"
           }
         },
         "cat3": {
           "type": "category",
           "settings": {
-            "collection": "",
+            "collection": "drone-uas",
             "custom_title": "Drones/UAS",
             "custom_description": "Airframes, payloads, mapping software",
-            "custom_count": "65+ Products",
+            "custom_count": "12+ Products",
             "custom_image": "shopify://shop_images/ChatGPT_Image_Feb_21_2026_01_02_51_PM.png"
           }
         },
         "cat4": {
           "type": "category",
           "settings": {
-            "collection": "",
+            "collection": "gps-gnss-tps",
             "custom_title": "GPS/GNSS & TPS",
             "custom_description": "Base/rover, total stations, controllers",
-            "custom_count": "200+ Products"
+            "custom_count": "109+ Products"
           }
         }
       },
