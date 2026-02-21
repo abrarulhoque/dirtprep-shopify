@@ -90,7 +90,7 @@
         "cat1": {
           "type": "category",
           "settings": {
-            "collection": "",
+            "collection": "machine-control",
             "custom_title": "Machine Control",
             "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
             "custom_count": "120+ Products",
