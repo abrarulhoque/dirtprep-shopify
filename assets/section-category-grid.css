@@ -121,13 +121,19 @@
   transition: all 0.3s ease;
 }
 
-.category-grid__link {
+.category-grid__category-title a::after {
+  content: '';
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
+}
+
+.category-grid__category-title a {
+  text-decoration: none;
+  color: inherit;
 }
 
 .category-grid__item:hover .category-grid__category-title {
