@@ -87,8 +87,13 @@
             {%- case block.type -%}
               {%- when 'quick_chip' -%}
                 {%- if block.settings.chip_text != blank -%}
+                  {%- assign chip_url = block.settings.chip_link -%}
+                  {%- if chip_url == blank -%}
+                    {%- assign chip_text_encoded = block.settings.chip_text | url_encode -%}
+                    {%- assign chip_url = routes.search_url | append: '?q=' | append: chip_text_encoded -%}
+                  {%- endif -%}
                   <a
-                    href="{{ block.settings.chip_link | default: routes.search_url | append: '?q=' | append: block.settings.chip_text | url_encode }}"
+                    href="{{ chip_url }}"
                     class="hero-section__chip button button--secondary"
                     {{ block.shopify_attributes }}
                   >
