@@ -136,7 +136,7 @@
         "heading_size": "h1",
         "columns_desktop": 4,
         "columns_tablet": 2,
-        "columns_mobile": "1",
+        "columns_mobile": "2",
         "grid_gap": 3,
         "card_border_radius": 0,
         "hover_lift": 5,
