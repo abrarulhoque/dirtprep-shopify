@@ -1,0 +1,34 @@
+{% layout none %}
+{% paginate collection.products by 250 %}
+{
+  "results": [
+    {%- assign first = true -%}
+    {%- for item in collection.products -%}
+      {%- assign skip = false -%}
+      {%- for tag in item.tags -%}
+        {%- assign t = tag | downcase -%}
+        {%- if t contains 'zoho-item' or t contains 'zoho-composite' -%}
+          {%- assign skip = true -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if skip == false -%}
+        {%- unless first -%},{%- endunless -%}
+        {%- assign first = false -%}
+        {
+          "id": {{ item.id | json }},
+          "title": {{ item.title | json }},
+          "handle": {{ item.handle | json }},
+          "price": {{ item.price | divided_by: 100.0 | json }},
+          "category": {{ item.type | json }},
+          "sku": {{ item.first_available_variant.sku | json }},
+          "image": {% if item.featured_image %}{{ item.featured_image | image_url: width: 300 | json }}{% else %}null{% endif %},
+          "tags": {{ item.tags | json }}
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  ],
+  "pages": {{ paginate.pages | json }},
+  "current_page": {{ paginate.current_page | json }},
+  "total_count": {{ collection.products_count | json }}
+}
+{% endpaginate %}

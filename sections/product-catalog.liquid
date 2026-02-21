@@ -73,7 +73,16 @@
           <input type="text" class="product-catalog__category-search" data-category-search placeholder="Search categories...">
         </div>
         <ul class="product-catalog__category-list" data-category-list>
-          {%- comment -%} Populated by JS after AJAX load {%- endcomment -%}
+          {%- assign sorted_types = shop.types | sort -%}
+          {%- for type in sorted_types -%}
+            {%- if type != blank -%}
+              <li class="product-catalog__category-item" data-category-item="{{ type | escape | downcase }}">
+                <input type="checkbox" value="{{ type | escape }}" data-category-checkbox id="cat-{{ forloop.index }}">
+                <span class="product-catalog__category-icon" data-icon="{{ type | escape | downcase }}"></span>
+                <label class="product-catalog__category-name" for="cat-{{ forloop.index }}">{{ type | escape }}</label>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
         </ul>
       </div>
     </aside>

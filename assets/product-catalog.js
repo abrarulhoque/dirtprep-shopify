@@ -78,11 +78,11 @@ if (!customElements.get('product-catalog-section')) {
       this.searchQuery = '';
       this.selectedCategories = new Set();
       this.priceMin = 0;
-      this.priceMax = Infinity;
+      this.globalPriceMax = 150000;
+      this.priceMax = this.globalPriceMax;
       this.sortBy = 'best-selling';
       this.allProducts = [];
-      this.allCategories = {};
-      this.globalPriceMax = 0;
+      this.totalProducts = 0;
       this.collectionHandle = this.dataset.collection || 'all';
     }
 
@@ -94,221 +94,105 @@ if (!customElements.get('product-catalog-section')) {
       this.emptyEl = this.querySelector('[data-empty-state]');
       this.loadingEl = this.querySelector('[data-loading]');
 
+      this.initCategorySidebar();
       this.initSearch();
       this.initViewToggle();
       this.initSort();
+      this.initPriceFilter();
       this.initMobileFilter();
       this.initFilterReset();
       this.setView(this.viewMode, false);
 
-      // Start loading all products
-      this.fetchAllProducts();
+      // Fetch initial products
+      this.fetchProducts();
     }
 
     /* ============================================
-       AJAX PRODUCT LOADER
+       AJAX PRODUCT LOADER (SERVER-SIDE FILTERING)
        ============================================ */
-    async fetchAllProducts() {
-      // Show loading state
+    async fetchProducts(page = 1) {
       if (this.loadingEl) this.loadingEl.style.display = '';
       if (this.productsContainer) this.productsContainer.style.display = 'none';
       if (this.emptyEl) this.emptyEl.style.display = 'none';
 
-      try {
-        this.allProducts = [];
-        this.allCategories = {};
-        this.globalPriceMax = 0;
-        this.priceMax = 0;
-        
-        let page = 1;
-        const url = `/collections/${this.collectionHandle}/products.json?limit=250&page=${page}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+      let q = '';
+      
+      // Build categories query
+      if (this.selectedCategories.size > 0) {
+        const cats = Array.from(this.selectedCategories).map(c => `product_type:"${c.replace(/"/g, '')}" OR tag:"${c.replace(/"/g, '')}"`);
+        q += `(${cats.join(' OR ')})`;
+      }
 
-        if (data.products && data.products.length > 0) {
-          this.processProductsChunk(data.products, true);
-          
-          if (data.products.length === 250) {
-            // Load the rest progressively in the background
-            this.loadRemainingProductsSilently(2);
-          } else {
-            if (this.loadingEl) this.loadingEl.style.display = 'none';
-          }
-        } else {
-          if (this.loadingEl) this.loadingEl.style.display = 'none';
-          this.renderProducts();
-        }
+      // Build price query
+      if (this.priceMin > 0 || this.priceMax < this.globalPriceMax) {
+        if (q) q += ' AND ';
+        q += `(price:>=${this.priceMin} AND price:<=${this.priceMax})`;
+      }
+
+      // Build text search query
+      if (this.searchQuery) {
+        if (q) q += ' AND ';
+        q += `*${this.searchQuery}*`;
+      }
+
+      let url;
+      if (!q && (this.sortBy === 'best-selling' || this.sortBy === 'title-ascending' || this.sortBy === 'title-descending' || this.sortBy === 'price-ascending' || this.sortBy === 'price-descending')) {
+        url = `/collections/${this.collectionHandle}?view=ajax&page=${page}&sort_by=${this.sortBy}`;
+      } else {
+        url = `/search?type=product&view=ajax&q=${encodeURIComponent(q)}&sort_by=${this.sortBy}&page=${page}`;
+      }
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        
+        this.allProducts = data.results || [];
+        this.totalProducts = data.total_count || this.allProducts.length;
+
+        if (this.loadingEl) this.loadingEl.style.display = 'none';
+        this.renderProducts();
       } catch (err) {
-        console.error('Product Catalog: Failed to load products', err);
+        console.error('Failed to fetch filtered products:', err);
         if (this.loadingEl) this.loadingEl.style.display = 'none';
         if (this.emptyEl) {
-          this.emptyEl.querySelector('h3').textContent = 'Failed to load products';
-          this.emptyEl.querySelector('p').textContent = 'Please refresh the page to try again.';
+          this.emptyEl.querySelector('h3').textContent = 'Error loading products';
+          this.emptyEl.querySelector('p').textContent = 'Please try again later.';
           this.emptyEl.style.display = '';
         }
       }
     }
 
-    async loadRemainingProductsSilently(startPage) {
-      let page = startPage;
-      let hasMore = true;
-      let changed = false;
-
-      while (hasMore) {
-        try {
-          const url = `/collections/${this.collectionHandle}/products.json?limit=250&page=${page}`;
-          const response = await fetch(url);
-          if (!response.ok) break;
-          const data = await response.json();
-          
-          if (data.products && data.products.length > 0) {
-            this.processProductsChunk(data.products, false);
-            changed = true;
-            page++;
-            if (data.products.length < 250) hasMore = false;
-          } else {
-            hasMore = false;
-          }
-        } catch(e) {
-          hasMore = false;
-        }
-      }
-      if (this.loadingEl) this.loadingEl.style.display = 'none';
-      if (changed) {
-        // One final rebuild and sorted render to finalize data completeness
-        this.buildCategorySidebar(); 
-        this.renderProducts();
-      }
-    }
-
-    processProductsChunk(rawProducts, isFirstRun) {
-      // Process raw Shopify product JSON into our working format
-      const newItems = rawProducts.map(p => {
-        const variant = p.variants && p.variants[0] ? p.variants[0] : {};
-        const price = parseFloat(variant.price) || 0;
-        const category = (p.product_type || '').trim();
-        // Filter system tags
-        const systemPrefixes = ['zoho-item', 'zoho-composite'];
-        const rawTags = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? p.tags.split(',') : []);
-        const tags = rawTags.map(t => String(t).trim()).filter(t => {
-          if (!t) return false;
-          const tl = t.toLowerCase();
-          for (const prefix of systemPrefixes) {
-            if (tl.includes(prefix)) return false;
-          }
-          // Skip ALL_CAPS tags that look like system tags
-          if (t === t.toUpperCase() && !t.includes(' ') && t.length > 3) return false;
-          return true;
-        });
-
-        return {
-          handle: p.handle,
-          title: p.title || '',
-          category: category,
-          sku: variant.sku || '',
-          price: price,
-          tags: tags,
-          url: `/products/${p.handle}`,
-          image: p.images && p.images.length > 0 ? p.images[0].src : null,
-          searchText: [
-            (p.title || '').toLowerCase(),
-            category.toLowerCase(),
-            (variant.sku || '').toLowerCase(),
-            tags.join(' ').toLowerCase()
-          ].join(' ')
-        };
-      });
-      
-      this.allProducts.push(...newItems);
-
-      // Build or update category map natively
-      newItems.forEach(p => {
-        if (p.category) {
-          const key = p.category.toLowerCase();
-          if (!this.allCategories[key]) {
-            this.allCategories[key] = { name: p.category, count: 0 };
-          }
-          this.allCategories[key].count++;
-        }
-      });
-
-      // Update max price range incrementally
-      const prices = this.allProducts.map(p => p.price).filter(p => p > 0);
-      const newMax = prices.length ? Math.ceil(Math.max(...prices)) : 0;
-      
-      let maxUpgraded = false;
-      if (newMax > this.globalPriceMax) {
-        const wasAtMax = this.priceMax >= this.globalPriceMax;
-        this.globalPriceMax = newMax;
-        if (wasAtMax || isFirstRun) {
-          this.priceMax = newMax;
-        }
-        maxUpgraded = true;
-      }
-
-      if (isFirstRun) {
-        this.buildCategorySidebar();
-        this.initPriceFilter();
-      } else {
-        this.updateCategorySidebarCounts();
-        if (maxUpgraded) this.updatePriceFilterSilently();
-      }
-      
-      // Update the product grid dynamically to provide instant results if they aren't filtering heavily
-      if (this.searchQuery === '' && this.selectedCategories.size === 0 && this.sortBy === 'best-selling') {
-        this.renderProducts();
-      } else if (isFirstRun) {
-        this.renderProducts();
-      }
-
-      // Hide loading if first run done
-      if (isFirstRun && this.loadingEl) {
-         if (this.allProducts.length < 250) this.loadingEl.style.display = 'none';
-      }
-    }
-
     /* ============================================
-       BUILD CATEGORY SIDEBAR
+       INIT CATEGORY SIDEBAR (STATIC RENDERED)
        ============================================ */
-    buildCategorySidebar() {
+    initCategorySidebar() {
       const catContainer = this.querySelector('[data-category-list]');
       if (!catContainer) return;
-      catContainer.innerHTML = '';
 
-      const sortedCategories = Object.entries(this.allCategories)
-        .sort((a, b) => a[1].name.localeCompare(b[1].name));
+      // Assign SVG icons to the static HTML items and bind events
+      catContainer.querySelectorAll('.product-catalog__category-item').forEach(item => {
+        const key = item.dataset.categoryItem;
+        const iconSpan = item.querySelector('[data-icon]');
+        const checkbox = item.querySelector('[data-category-checkbox]');
+        
+        if (iconSpan && key) {
+          iconSpan.innerHTML = makeSvg(getCategoryIcon(key), 16);
+        }
 
-      sortedCategories.forEach(([key, { name, count }]) => {
-        const li = document.createElement('li');
-        li.className = 'product-catalog__category-item';
-        li.dataset.categoryItem = key;
-
-        const iconSvg = makeSvg(getCategoryIcon(key), 16);
-        li.innerHTML = `
-          <input type="checkbox" value="${key}" data-category-checkbox id="cat-${key.replace(/[^a-z0-9]/g, '-')}">
-          <span class="product-catalog__category-icon">${iconSvg}</span>
-          <label class="product-catalog__category-name" for="cat-${key.replace(/[^a-z0-9]/g, '-')}">${this.escapeHtml(name)}</label>
-          <span class="product-catalog__category-count">${count}</span>
-        `;
-        catContainer.appendChild(li);
+        if (checkbox) {
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              this.selectedCategories.add(checkbox.value);
+            } else {
+              this.selectedCategories.delete(checkbox.value);
+            }
+            this.updateFilterCount();
+            this.fetchProducts();
+          });
+        }
       });
 
-      // Bind checkbox events
-      catContainer.querySelectorAll('[data-category-checkbox]').forEach(cb => {
-        cb.addEventListener('change', () => {
-          const cat = cb.value;
-          if (cb.checked) {
-            this.selectedCategories.add(cat);
-          } else {
-            this.selectedCategories.delete(cat);
-          }
-          this.renderProducts();
-          this.updateFilterCount();
-        });
-      });
-
-      // Category search
       const catSearch = this.querySelector('[data-category-search]');
       if (catSearch) {
         catSearch.addEventListener('input', () => {
@@ -320,69 +204,21 @@ if (!customElements.get('product-catalog-section')) {
         });
       }
     }
-    
-    updateCategorySidebarCounts() {
-      const catContainer = this.querySelector('[data-category-list]');
-      if (!catContainer) return;
-      
-      Object.entries(this.allCategories).forEach(([key, { name, count }]) => {
-        let li = catContainer.querySelector(`[data-category-item="${key}"]`);
-        if (!li) {
-          li = document.createElement('li');
-          li.className = 'product-catalog__category-item';
-          li.dataset.categoryItem = key;
-          const iconSvg = makeSvg(getCategoryIcon(key), 16);
-          li.innerHTML = `
-            <input type="checkbox" value="${key}" data-category-checkbox id="cat-${key.replace(/[^a-z0-9]/g, '-')}">
-            <span class="product-catalog__category-icon">${iconSvg}</span>
-            <label class="product-catalog__category-name" for="cat-${key.replace(/[^a-z0-9]/g, '-')}">${this.escapeHtml(name)}</label>
-            <span class="product-catalog__category-count">${count}</span>
-          `;
-          catContainer.appendChild(li);
-          const cb = li.querySelector('input');
-          cb.addEventListener('change', () => {
-            if (cb.checked) this.selectedCategories.add(cb.value);
-            else this.selectedCategories.delete(cb.value);
-            this.renderProducts();
-            this.updateFilterCount();
-          });
-        } else {
-          const countEl = li.querySelector('.product-catalog__category-count');
-          if (countEl) countEl.textContent = count;
-        }
-      });
-    }
 
     /* ============================================
-       RENDER PRODUCTS
+       RENDER PRODUCTS (NO LOCAL FILTERING)
        ============================================ */
     renderProducts() {
       if (!this.productsContainer) return;
 
-      // 1. Filter
-      let filtered = this.allProducts.filter(p => {
-        // Search
-        if (this.searchQuery && !p.searchText.includes(this.searchQuery)) return false;
-        // Category
-        if (this.selectedCategories.size > 0 && !this.selectedCategories.has(p.category.toLowerCase())) return false;
-        // Price
-        if (p.price < this.priceMin || p.price > this.priceMax) return false;
-        return true;
-      });
+      const filtered = this.allProducts;
 
-      // 2. Sort
-      filtered = this.sortProductList(filtered);
-
-      // 3. Update count
+      // Update count
       if (this.countEl) {
-        if (filtered.length === this.allProducts.length) {
-          this.countEl.innerHTML = `<strong>${filtered.length}</strong> products`;
-        } else {
-          this.countEl.innerHTML = `<strong>${filtered.length}</strong> of ${this.allProducts.length} products`;
-        }
+        this.countEl.innerHTML = `<strong>${this.totalProducts}</strong> products`;
       }
 
-      // 4. Show/hide empty
+      // Show/hide empty
       if (filtered.length === 0) {
         if (this.emptyEl) this.emptyEl.style.display = '';
         this.productsContainer.style.display = 'none';
@@ -465,26 +301,6 @@ if (!customElements.get('product-catalog-section')) {
       }
     }
 
-    sortProductList(products) {
-      const list = [...products];
-      switch (this.sortBy) {
-        case 'title-ascending':
-          list.sort((a, b) => a.title.localeCompare(b.title));
-          break;
-        case 'title-descending':
-          list.sort((a, b) => b.title.localeCompare(a.title));
-          break;
-        case 'price-ascending':
-          list.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-descending':
-          list.sort((a, b) => b.price - a.price);
-          break;
-        // best-selling, created: keep original order
-      }
-      return list;
-    }
-
     /* ============================================
        SEARCH
        ============================================ */
@@ -496,8 +312,8 @@ if (!customElements.get('product-catalog-section')) {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           this.searchQuery = searchInput.value.toLowerCase().trim();
-          this.renderProducts();
-        }, 200);
+          this.fetchProducts();
+        }, 500);
       });
     }
 
@@ -529,7 +345,7 @@ if (!customElements.get('product-catalog-section')) {
       if (!sortSelect) return;
       sortSelect.addEventListener('change', () => {
         this.sortBy = sortSelect.value;
-        this.renderProducts();
+        this.fetchProducts();
       });
     }
 
@@ -566,7 +382,12 @@ if (!customElements.get('product-catalog-section')) {
         if (this.priceMinDisplay) this.priceMinDisplay.textContent = '$' + this.formatNumber(min);
         if (this.priceMaxDisplay) this.priceMaxDisplay.textContent = '$' + this.formatNumber(max);
         this.updatePriceTrack();
-        this.renderProducts();
+        
+        // Debounce fetching when dragging slider
+        clearTimeout(this.priceDebounceTimer);
+        this.priceDebounceTimer = setTimeout(() => {
+          this.fetchProducts();
+        }, 400);
       };
 
       this.priceMinSlider.addEventListener('input', onPriceChange);
@@ -619,7 +440,7 @@ if (!customElements.get('product-catalog-section')) {
         if (this.priceMaxDisplay) this.priceMaxDisplay.textContent = '$' + this.formatNumber(this.globalPriceMax);
         this.updatePriceTrack();
         this.updateFilterCount();
-        this.renderProducts();
+        this.fetchProducts();
       });
     }
 
