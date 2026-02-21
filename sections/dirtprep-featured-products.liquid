@@ -1,0 +1,121 @@
+{{ 'section-dirtprep-featured.css' | asset_url | stylesheet_tag }}
+
+<div class="dp-featured-container" id="Featured-{{ section.id }}" data-section="{{ section.id }}">
+  <div class="dp-featured-inner">
+    <div class="dp-featured-header">
+      <div class="dp-featured-title-wrapper">
+        <h2 class="dp-featured-title">{{ section.settings.heading }}</h2>
+        <p class="dp-featured-desc">{{ section.settings.description }}</p>
+      </div>
+      <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="dp-featured-link">
+        {{ section.settings.button_label }}
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div class="dp-featured-grid">
+      {%- if section.settings.product_list != blank -%}
+        {%- for product in section.settings.product_list limit: section.settings.max_products -%}
+          <div class="dp-featured-card-wrapper">
+            <a href="{{ product.url }}" class="dp-featured-card">
+              <div class="dp-card-img-wrapper">
+                {%- if product.featured_media -%}
+                  <img src="{{ product.featured_media | image_url: width: 600 }}" alt="{{ product.featured_media.alt | escape }}" loading="lazy" width="300" height="300">
+                {%- else -%}
+                  {{ 'product-1' | placeholder_svg_tag }}
+                {%- endif -%}
+              </div>
+              <div class="dp-card-info">
+                {%- if product.type != blank -%}
+                  <div class="dp-card-category">{{ product.type }}</div>
+                {%- else -%}
+                   <div class="dp-card-category">Equipment</div>
+                {%- endif -%}
+                <h3 class="dp-card-title">{{ product.title }}</h3>
+              </div>
+              <div class="dp-card-bottom">
+                <span class="dp-card-price">{{ product.price | money }}</span>
+                <div class="dp-card-icon-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                </div>
+              </div>
+            </a>
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <!-- Mock Data if nothing selected -->
+        {%- for i in (1..section.settings.max_products) -%}
+        <div class="dp-featured-card-wrapper">
+          <a href="#" class="dp-featured-card">
+              <div class="dp-card-img-wrapper">
+                  {{ 'product-' | append: i | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+              <div class="dp-card-info">
+                <div class="dp-card-category">Laser System</div>
+                <h3 class="dp-card-title">Example Industrial Equipment</h3>
+              </div>
+              <div class="dp-card-bottom">
+                <span class="dp-card-price">$4,250.00</span>
+                <div class="dp-card-icon-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                </div>
+              </div>
+          </a>
+        </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "DirtPrep Featured Prods",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured Equipment"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Description",
+      "default": "High-performance systems trusted by industry professionals."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label",
+      "default": "Explore All Products"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    },
+    {
+      "type": "product_list",
+      "id": "product_list",
+      "label": "Products to Feature"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "label": "Maximum products to show",
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "DirtPrep Featured Products"
+    }
+  ]
+}
+{% endschema %}

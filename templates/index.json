@@ -1,44 +1,162 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
+
 {
   "sections": {
-    "featured_collection": {
-      "type": "featured-collection",
+    "hero": {
+      "type": "hero-section",
+      "blocks": {
+        "chip1": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Machine Control"
+          }
+        },
+        "chip2": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Base + Rover"
+          }
+        },
+        "chip3": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Agtek Licenses"
+          }
+        },
+        "chip4": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Drones"
+          }
+        },
+        "chip5": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Models/Takeoffs"
+          }
+        },
+        "chip6": {
+          "type": "quick_chip",
+          "settings": {
+            "chip_text": "Lasers"
+          }
+        }
+      },
+      "block_order": [
+        "chip1",
+        "chip2",
+        "chip3",
+        "chip4",
+        "chip5",
+        "chip6"
+      ],
       "settings": {
-        "collection": "all",
-        "products_to_show": 8,
-        "title": "Featured products",
-        "heading_size": "h2",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "columns_desktop": 4,
-        "enable_desktop_slider": false,
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "solid",
+        "image_overlay_opacity": 40,
         "color_scheme": "scheme-1",
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "2",
-        "swipe_on_mobile": false,
-        "padding_top": 44,
-        "padding_bottom": 36
+        "heading": "Precision Equipment for Earthmoving & Construction",
+        "heading_size": "hxxl",
+        "text": "Shop construction technology—sales, setup & support by DirtPrep.",
+        "show_search": true,
+        "search_placeholder": "Search for products, services, or solutions...",
+        "search_button_text": "Search",
+        "show_quick_chips": true,
+        "button_label_1": "Book a Demo",
+        "button_link_1": "shopify:\/\/collections\/all",
+        "button_style_secondary_1": false,
+        "button_label_2": "Request a Quote",
+        "button_link_2": "shopify:\/\/collections\/all",
+        "button_style_secondary_2": true,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
+    "categories": {
+      "type": "category-grid",
+      "blocks": {
+        "cat1": {
+          "type": "category",
+          "settings": {
+            "custom_title": "Machine Control",
+            "custom_description": "2D/3D systems, wire-ups, kits, cab kits",
+            "custom_count": "120+ Products"
+          }
+        },
+        "cat2": {
+          "type": "category",
+          "settings": {
+            "custom_title": "Detection Systems",
+            "custom_description": "Locators, GPR, software solutions",
+            "custom_count": "85+ Products"
+          }
+        },
+        "cat3": {
+          "type": "category",
+          "settings": {
+            "custom_title": "Drones/UAS",
+            "custom_description": "Airframes, payloads, mapping software",
+            "custom_count": "65+ Products"
+          }
+        },
+        "cat4": {
+          "type": "category",
+          "settings": {
+            "custom_title": "GPS/GNSS & TPS",
+            "custom_description": "Base/rover, total stations, controllers",
+            "custom_count": "200+ Products"
+          }
+        }
+      },
+      "block_order": [
+        "cat1",
+        "cat2",
+        "cat3",
+        "cat4"
+      ],
+      "settings": {
+        "title": "Shop by Category",
+        "subtitle": "Find exactly what you need with our curated product collections",
+        "heading_size": "h1",
+        "columns_desktop": 4,
+        "columns_tablet": 2,
+        "columns_mobile": "1",
+        "grid_gap": 3,
+        "card_border_radius": 0,
+        "hover_lift": 5,
+        "image_scale_hover": 105,
+        "show_product_count": true,
+        "show_button": false,
+        "show_arrow": false,
+        "button_text": "Browse",
+        "color_scheme": "scheme-1",
+        "background_color": "#F9F9F9",
+        "heading_color": "#171818",
+        "text_color": "#6b7280",
+        "card_background_color": "#FFFFFF",
+        "card_heading_color": "#171818",
+        "card_text_color": "#6b7280",
+        "accent_color": "#E62525",
+        "button_background": "transparent",
+        "button_text_color": "#161818",
+        "button_border_color": "#E1E1E1",
+        "button_hover_background": "#E62525",
+        "button_hover_text_color": "#FFFFFF",
+        "button_border_radius": 0,
+        "padding_top": 96,
+        "padding_bottom": 96
+      }
+    },
+    "featured": {
+      "type": "dirtprep-featured-products",
+      "settings": {
+        "heading": "Featured Equipment",
+        "description": "High-performance systems trusted by industry professionals.",
+        "button_label": "Explore All Products",
+        "max_products": 4
       }
     }
   },
   "order": [
-    "featured_collection"
+    "hero",
+    "categories",
+    "featured"
   ]
 }
