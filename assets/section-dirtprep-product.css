@@ -1,21 +1,21 @@
 .dp-product-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 32px 16px;
 }
 
 @media (min-width: 1024px) {
   .dp-product-container {
-    padding-top: 3rem;
-    padding-bottom: 3rem;
+    padding-top: 48px;
+    padding-bottom: 48px;
   }
 }
 
 .dp-breadcrumbs {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
   color: #6b7280;
 }
@@ -30,7 +30,7 @@
 }
 
 .dp-breadcrumbs-separator {
-  margin: 0 0.5rem;
+  margin: 0 8px;
 }
 
 .dp-breadcrumbs-current {
@@ -43,14 +43,14 @@
 .dp-product-layout {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 32px;
 }
 
 @media (min-width: 1024px) {
   .dp-product-layout {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 3.5rem;
+    gap: 56px;
     align-items: start;
   }
 }
@@ -63,7 +63,7 @@
   .dp-product-gallery {
     grid-column: span 7 / span 7;
     position: sticky;
-    top: 6rem;
+    top: 96px;
   }
 }
 
@@ -85,30 +85,30 @@
 
 .dp-gallery-badge {
   position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  font-size: 0.75rem;
+  bottom: 16px;
+  right: 16px;
+  font-size: 12px;
   font-weight: 600;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 0.25rem 0.75rem;
+  padding: 4px 12px;
   background-color: white;
   border: 1px solid #e5e7eb;
 }
 
 .dp-gallery-thumbs {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: 16px;
+  margin-top: 16px;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding-bottom: 8px;
 }
 
 .dp-gallery-thumb {
   flex: none;
-  width: 5rem;
-  height: 5rem;
+  width: 80px;
+  height: 80px;
   background-color: #F3F3F3;
   border: 1px solid #e5e7eb;
   display: flex;
@@ -144,17 +144,17 @@
 
 .dp-product-title {
   font-family: var(--font-heading, "Lexend Deca", sans-serif);
-  font-size: 1.875rem;
+  font-size: 30px;
   line-height: 1.25;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #171818;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 12px 0;
 }
 
 @media (min-width: 768px) {
   .dp-product-title {
-    font-size: 2.25rem;
+    font-size: 36px;
   }
 }
 
@@ -162,8 +162,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
+  font-size: 14px;
+  margin-bottom: 24px;
 }
 
 .dp-product-sku {
@@ -179,51 +179,51 @@
   color: #E62525;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 12px;
   letter-spacing: 0.05em;
 }
 
 .dp-product-dealer svg {
-  width: 1rem;
-  height: 1rem;
-  margin-right: 0.25rem;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
 }
 
 .dp-divider {
   border: 0;
   border-top: 1px solid #f3f4f6;
-  margin: 1.5rem 0;
+  margin: 24px 0;
 }
 
 .dp-product-price {
-  font-size: 2.25rem;
+  font-size: 36px;
   font-weight: 800;
   color: #E62525;
   font-family: var(--font-sans, "Manrope", sans-serif);
   line-height: 1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .dp-product-desc {
-  font-size: 1rem;
+  font-size: 16px;
   color: #4b5563;
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
   line-height: 1.625;
 }
 
 .dp-product-options {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
+  margin-bottom: 32px;
+  padding: 24px;
   background-color: #F9F9F9;
   border: 1px solid #f3f4f6;
 }
 
 .dp-option-label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 700;
   color: #171818;
-  margin-bottom: 0.75rem;
+  margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -237,11 +237,12 @@
   border: 2px solid #d1d5db;
   border-radius: 0;
   background-color: white;
-  padding: 1rem 2.5rem 1rem 1rem;
+  padding: 16px 40px 16px 16px;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   font-weight: 500;
+  font-size: 16px;
   color: #171818;
   transition: border-color 0.2s;
 }
@@ -258,7 +259,7 @@
   right: 0;
   display: flex;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 16px;
   pointer-events: none;
   color: #6b7280;
 }
@@ -266,8 +267,8 @@
 .dp-add-to-cart-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
 @media (min-width: 640px) {
@@ -289,19 +290,19 @@
 
 @media (min-width: 640px) {
   .dp-quantity-selector {
-    width: 8rem;
+    width: 128px;
   }
 }
 
 .dp-quantity-btn {
-  padding: 0.5rem 1rem;
+  padding: 8px 16px;
   height: 100%;
   color: #6b7280;
   background: transparent;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 1.25rem;
+  font-size: 20px;
 }
 
 .dp-quantity-btn:hover {
@@ -315,7 +316,7 @@
   border: none;
   background: transparent;
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 18px;
   color: #171818;
   padding: 0;
 }
@@ -332,7 +333,7 @@
   color: white;
   font-family: var(--font-heading, "Lexend Deca", sans-serif);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,39 +354,39 @@
 .dp-trust-props {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  padding-top: 1.5rem;
+  gap: 16px;
+  padding-top: 24px;
   border-top: 1px solid #f3f4f6;
 }
 
 .dp-trust-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .dp-trust-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 20px;
+  height: 20px;
   color: #9ca3af;
   flex-shrink: 0;
-  margin-top: 0.125rem;
+  margin-top: 2px;
 }
 
 .dp-trust-title {
   display: block;
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 700;
   color: #171818;
 }
 
 .dp-trust-sub {
-  font-size: 0.75rem;
+  font-size: 12px;
   color: #6b7280;
 }
 
 .dp-tabs-container {
-  margin-top: 5rem;
+  margin-top: 80px;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -400,10 +401,10 @@
 }
 
 .dp-tab-btn {
-  padding: 1.5rem 2rem;
+  padding: 24px 32px;
   font-family: var(--font-heading, "Lexend Deca", sans-serif);
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 18px;
   border: none;
   border-top: 4px solid transparent;
   background: transparent;
@@ -423,10 +424,10 @@
 }
 
 .dp-tab-content {
-  padding: 3rem 0.5rem;
-  max-width: 56rem;
+  padding: 48px 8px;
+  max-width: 896px;
   color: #4b5563;
-  font-size: 1.125rem;
+  font-size: 18px;
   line-height: 1.625;
 }
 
@@ -447,9 +448,9 @@
 .dp-tab-heading {
   font-family: var(--font-heading, "Lexend Deca", sans-serif);
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 24px;
   color: #171818;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .dp-specs-table {
@@ -476,20 +477,20 @@
 
 .dp-specs-label {
   width: 33.333%;
-  padding: 1rem;
+  padding: 16px;
   font-weight: 700;
   color: #171818;
 }
 
 .dp-specs-value {
   width: 66.666%;
-  padding: 1rem;
+  padding: 16px;
 }
 
 .dp-box-list {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 16px;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -504,12 +505,12 @@
 .dp-box-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .dp-box-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 20px;
+  height: 20px;
   color: #076CA3;
 }
 
