@@ -1,0 +1,272 @@
+{{ 'section-dirtprep-product.css' | asset_url | stylesheet_tag }}
+
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+
+<div class="dp-product-container" id="MainProduct-{{ section.id }}" data-section="{{ section.id }}">
+  <!-- Breadcrumbs -->
+  <nav class="dp-breadcrumbs" aria-label="breadcrumbs">
+    <a href="{{ routes.collections_url }}">Shop</a>
+    <span class="dp-breadcrumbs-separator">/</span>
+    {%- if product.collections.size > 0 -%}
+      <a href="{{ product.collections.first.url }}">{{ product.collections.first.title }}</a>
+      <span class="dp-breadcrumbs-separator">/</span>
+    {%- endif -%}
+    <span class="dp-breadcrumbs-current">{{ product.title }}</span>
+  </nav>
+
+  <!-- Main Layout -->
+  <div class="dp-product-layout">
+    
+    <!-- Gallery -->
+    <div class="dp-product-gallery">
+      <div class="dp-gallery-main" id="dp-gallery-main">
+        {%- if product.selected_or_first_available_variant.featured_media != null -%}
+          {%- assign featured_media = product.selected_or_first_available_variant.featured_media -%}
+        {%- else -%}
+          {%- assign featured_media = product.featured_media -%}
+        {%- endif -%}
+        
+        {%- if featured_media -%}
+          <img src="{{ featured_media | image_url: width: 1000 }}" alt="{{ featured_media.alt | escape }}" loading="lazy" width="500" height="500" id="dp-main-image">
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg dp-placeholder-img' }}
+        {%- endif -%}
+        
+        {%- if product.type != blank -%}
+          <span class="dp-gallery-badge">{{ product.type }}</span>
+        {%- endif -%}
+      </div>
+
+      {%- if product.media.size > 1 -%}
+        <div class="dp-gallery-thumbs">
+          {%- for media in product.media -%}
+            <button class="dp-gallery-thumb {% if forloop.first %}active{% endif %}" data-media-id="{{ media.id }}" onclick="dpSetMainImage('{{ media | image_url: width: 1000 }}', this)">
+              <img src="{{ media | image_url: width: 150 }}" alt="{{ media.alt | escape }}" loading="lazy" width="80" height="80">
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- Buy Box -->
+    <div class="dp-product-info">
+      <h1 class="dp-product-title">{{ product.title }}</h1>
+      
+      <div class="dp-product-meta">
+        <span class="dp-product-sku">SKU: <span id="dp-sku">{{ product.selected_or_first_available_variant.sku | default: 'N/A' }}</span></span>
+        <div class="dp-product-dealer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          Authorized Dealer
+        </div>
+      </div>
+
+      <hr class="dp-divider" />
+
+      <div class="dp-product-price" id="dp-price-{{ section.id }}">
+        {{ product.selected_or_first_available_variant.price | money }}
+      </div>
+
+      <div class="dp-product-desc">
+        {{ product.description | strip_html | truncatewords: 30 }}
+      </div>
+
+      <product-form class="product-form">
+        <div class="product-form__error-message-wrapper" role="alert" hidden>
+          <svg aria-hidden="true" focusable="false" class="icon icon-error" viewBox="0 0 13 13">
+            <circle cx="6.5" cy="6.50049" r="5.5" stroke="white" stroke-width="2"/>
+            <circle cx="6.5" cy="6.5" r="5.5" fill="#EB001B" stroke="#EB001B" stroke-width="0.7"/>
+            <path d="M5.87413 3.52832L5.97439 7.57216H7.02713L7.12739 3.52832H5.87413ZM6.50076 9.66091C6.88091 9.66091 7.18169 9.37267 7.18169 9.00504C7.18169 8.63742 6.88091 8.34917 6.50076 8.34917C6.12061 8.34917 5.81982 8.63742 5.81982 9.00504C5.81982 9.37267 6.12061 9.66091 6.50076 9.66091Z" fill="white"/>
+            <path d="M5.87413 3.17832H5.51535L5.52424 3.537L5.6245 7.58083L5.63296 7.92216H5.97439H7.02713H7.36856L7.37702 7.58083L7.47728 3.537L7.48617 3.17832H7.12739H5.87413ZM6.50076 10.0109C7.06121 10.0109 7.5317 9.57872 7.5317 9.00504C7.5317 8.43137 7.06121 7.99918 6.50076 7.99918C5.94031 7.99918 5.46982 8.43137 5.46982 9.00504C5.46982 9.57872 5.94031 10.0109 6.50076 10.0109Z" fill="white" stroke="#EB001B" stroke-width="0.7"/>
+          </svg>
+          <span class="product-form__error-message"></span>
+        </div>
+
+        {%- form 'product', product, id: 'product-form-installment', class: 'form' -%}
+          <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" id="dp-variant-id">
+
+          {%- unless product.has_only_default_variant -%}
+            <div class="dp-product-options">
+              <label class="dp-option-label" for="dp-variant-select">Configuration / Type</label>
+              <div class="dp-select-wrapper">
+                <select id="dp-variant-select" class="dp-select" onchange="dpUpdateVariant(this)">
+                  {%- for variant in product.variants -%}
+                    <option 
+                      value="{{ variant.id }}" 
+                      data-price="{{ variant.price | money }}"
+                      data-sku="{{ variant.sku }}"
+                      {% if variant.id == product.selected_or_first_available_variant.id %}selected="selected"{% endif %}
+                      {% unless variant.available %}disabled="disabled"{% endunless %}
+                    >
+                      {{ variant.title }} — {{ variant.price | money }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                <div class="dp-select-icon">
+                  <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" style="width: 1rem; height: 1rem; fill: currentColor;"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                </div>
+              </div>
+            </div>
+          {%- endunless -%}
+
+          <div class="dp-add-to-cart-wrapper">
+            <div class="dp-quantity-selector">
+              <button type="button" class="dp-quantity-btn" onclick="document.getElementById('dp-qty').stepDown()">-</button>
+              <input type="number" id="dp-qty" name="quantity" class="dp-quantity-input" value="1" min="1" aria-label="Quantity">
+              <button type="button" class="dp-quantity-btn" onclick="document.getElementById('dp-qty').stepUp()">+</button>
+            </div>
+            
+            <button
+              type="submit"
+              name="add"
+              class="dp-add-btn"
+              {% if product.selected_or_first_available_variant.available == false %}disabled{% endif %}
+            >
+              <span>
+                {%- if product.selected_or_first_available_variant.available -%}
+                  Add to Cart
+                {%- else -%}
+                  Out of Stock
+                {%- endif -%}
+              </span>
+            </button>
+          </div>
+        {%- endform -%}
+      </product-form>
+
+      <div class="dp-trust-props">
+        <div class="dp-trust-item">
+          <svg class="dp-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v5c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+          <div>
+            <span class="dp-trust-title">Ships in 24-48 hrs</span>
+            <span class="dp-trust-sub">Free shipping > $1,000</span>
+          </div>
+        </div>
+        <div class="dp-trust-item">
+          <svg class="dp-trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div>
+            <span class="dp-trust-title">Secure Checkout</span>
+            <span class="dp-trust-sub">Encrypted payment</span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="dp-tabs-container">
+    <div class="dp-tabs-nav">
+      <button class="dp-tab-btn active" onclick="dpOpenTab(event, 'dp-tab-details')">Product Details</button>
+      <button class="dp-tab-btn" onclick="dpOpenTab(event, 'dp-tab-specs')">Technical Specs</button>
+      {%- if product.metafields.custom.included_items != blank -%}
+        <button class="dp-tab-btn" onclick="dpOpenTab(event, 'dp-tab-box')">What's in the Box?</button>
+      {%- else -%}
+        <!-- Example mock tab for what's in box based on prototype -->
+        <button class="dp-tab-btn" onclick="dpOpenTab(event, 'dp-tab-box')">What's in the Box?</button>
+      {%- endif -%}
+    </div>
+
+    <div class="dp-tab-content">
+      <div id="dp-tab-details" class="dp-tab-pane active">
+        <h3 class="dp-tab-heading">Overview</h3>
+        {%- if product.description != blank -%}
+          {{ product.description }}
+        {%- else -%}
+          <p>Detailed overview content not available. Designed to integrate seamlessly into modern workflows, this equipment offers an intuitive experience for both operators and surveyors. Reduce downtime and maximize efficiency.</p>
+        {%- endif -%}
+      </div>
+
+      <div id="dp-tab-specs" class="dp-tab-pane">
+        <h3 class="dp-tab-heading">Specifications</h3>
+        <div class="dp-specs-table">
+          <div class="dp-specs-row"><div class="dp-specs-label">Category</div><div class="dp-specs-value">{{ product.type | default: 'Uncategorized' }}</div></div>
+          <div class="dp-specs-row"><div class="dp-specs-label">Hardware Tags</div><div class="dp-specs-value">{{ product.tags | join: ', ' | default: 'None' }}</div></div>
+          <div class="dp-specs-row"><div class="dp-specs-label">Weight</div><div class="dp-specs-value">{{ product.selected_or_first_available_variant.weight | weight_with_unit | default: 'Not specified' }}</div></div>
+          <div class="dp-specs-row"><div class="dp-specs-label">Warranty</div><div class="dp-specs-value">1-Year Manufacturer limited warranty</div></div>
+        </div>
+      </div>
+
+      <div id="dp-tab-box" class="dp-tab-pane">
+        <h3 class="dp-tab-heading">Included Items</h3>
+        <ul class="dp-box-list">
+          {%- if product.metafields.custom.included_items != blank -%}
+            {% assign items = product.metafields.custom.included_items | split: ',' %}
+            {% for item in items %}
+              <li class="dp-box-item">
+                <svg class="dp-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span class="dp-box-text">{{ item | strip }}</span>
+              </li>
+            {% endfor %}
+          {%- else -%}
+            <li class="dp-box-item"><svg class="dp-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="dp-box-text">1x {{ product.title }}</span></li>
+            <li class="dp-box-item"><svg class="dp-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="dp-box-text">1x Heavy Duty Hard Case</span></li>
+            <li class="dp-box-item"><svg class="dp-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="dp-box-text">1x Quick Start Guide</span></li>
+            <li class="dp-box-item"><svg class="dp-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="dp-box-text">Calibration Certificate</span></li>
+          {%- endif -%}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function dpSetMainImage(url, el) {
+    document.getElementById('dp-main-image').src = url;
+    document.querySelectorAll('.dp-gallery-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function dpUpdateVariant(select) {
+    var option = select.options[select.selectedIndex];
+    document.getElementById('dp-variant-id').value = option.value;
+    document.getElementById('dp-price-{{ section.id }}').innerText = option.getAttribute('data-price');
+    var sku = option.getAttribute('data-sku');
+    document.getElementById('dp-sku').innerText = sku ? sku : 'N/A';
+
+    var btnSpan = document.querySelector('.dp-add-btn span');
+    var btn = document.querySelector('.dp-add-btn');
+
+    if(option.disabled) {
+      btnSpan.innerText = 'Out of Stock';
+      btn.disabled = true;
+    } else {
+      btnSpan.innerText = 'Add to Cart';
+      btn.disabled = false;
+    }
+  }
+
+  function dpOpenTab(evt, tabName) {
+    var i, x, tablinks;
+    x = document.getElementsByClassName("dp-tab-pane");
+    for (i = 0; i < x.length; i++) {
+      x[i].style.display = "none";
+      x[i].classList.remove("active");
+    }
+    tablinks = document.getElementsByClassName("dp-tab-btn");
+    for (i = 0; i < x.length; i++) {
+      tablinks[i].classList.remove("active");
+    }
+    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.classList.add("active");
+  }
+</script>
+
+{% schema %}
+{
+  "name": "DirtPrep Product Page",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product Information Settings"
+    }
+  ],
+  "presets": [
+    {
+      "name": "DirtPrep Product Page"
+    }
+  ]
+}
+{% endschema %}
