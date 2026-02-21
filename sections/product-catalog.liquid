@@ -13,7 +13,7 @@
 {{ 'section-product-catalog.css' | asset_url | stylesheet_tag }}
 
 <product-catalog-section
-  class="product-catalog"
+  class="product-catalog page-width"
   data-section-id="{{ section.id }}"
   data-default-view="{{ section.settings.default_view | default: 'list' }}"
   data-collection="{{ selected_collection.handle }}"
@@ -29,7 +29,11 @@
   <div class="product-catalog__layout">
     {%- comment -%} === SIDEBAR === {%- endcomment -%}
     <aside class="product-catalog__sidebar" data-filter-sidebar>
-      {%- comment -%} Filters Header {%- endcomment -%}
+      <div class="product-catalog__mobile-filter-header">
+        <span>Filters</span>
+        <button type="button" data-mobile-filter-close aria-label="Close filters">&times;</button>
+      </div>
+      {%- comment -%} Filters Header (Desktop) {%- endcomment -%}
       <div class="product-catalog__filters-header">
         <span class="product-catalog__filters-title">
           FILTERS
@@ -74,15 +78,8 @@
       </div>
     </aside>
 
-    {%- comment -%} Mobile filter overlay + sidebar {%- endcomment -%}
+    {%- comment -%} Mobile filter overlay {%- endcomment -%}
     <div class="product-catalog__sidebar-overlay" data-mobile-filter-overlay></div>
-    <aside class="product-catalog__sidebar-mobile" data-mobile-filter-sidebar>
-      <div class="product-catalog__mobile-filter-header">
-        <span>Filters</span>
-        <button type="button" data-mobile-filter-close aria-label="Close filters">&times;</button>
-      </div>
-      {%- comment -%} Mobile filters duplicate — populated by JS too {%- endcomment -%}
-    </aside>
 
     {%- comment -%} === MAIN CONTENT === {%- endcomment -%}
     <div class="product-catalog__main" data-product-list>

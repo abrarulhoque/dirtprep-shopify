@@ -115,26 +115,30 @@ if (!customElements.get('product-catalog-section')) {
       if (this.emptyEl) this.emptyEl.style.display = 'none';
 
       try {
+        this.allProducts = [];
+        this.allCategories = {};
+        this.globalPriceMax = 0;
+        this.priceMax = 0;
+        
         let page = 1;
-        let hasMore = true;
-        const products = [];
+        const url = `/collections/${this.collectionHandle}/products.json?limit=250&page=${page}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
 
-        while (hasMore) {
-          const url = `/collections/${this.collectionHandle}/products.json?limit=250&page=${page}`;
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const data = await response.json();
-
-          if (data.products && data.products.length > 0) {
-            products.push(...data.products);
-            page++;
-            if (data.products.length < 250) hasMore = false;
+        if (data.products && data.products.length > 0) {
+          this.processProductsChunk(data.products, true);
+          
+          if (data.products.length === 250) {
+            // Load the rest progressively in the background
+            this.loadRemainingProductsSilently(2);
           } else {
-            hasMore = false;
+            if (this.loadingEl) this.loadingEl.style.display = 'none';
           }
+        } else {
+          if (this.loadingEl) this.loadingEl.style.display = 'none';
+          this.renderProducts();
         }
-
-        this.processProducts(products);
       } catch (err) {
         console.error('Product Catalog: Failed to load products', err);
         if (this.loadingEl) this.loadingEl.style.display = 'none';
@@ -146,9 +150,41 @@ if (!customElements.get('product-catalog-section')) {
       }
     }
 
-    processProducts(rawProducts) {
+    async loadRemainingProductsSilently(startPage) {
+      let page = startPage;
+      let hasMore = true;
+      let changed = false;
+
+      while (hasMore) {
+        try {
+          const url = `/collections/${this.collectionHandle}/products.json?limit=250&page=${page}`;
+          const response = await fetch(url);
+          if (!response.ok) break;
+          const data = await response.json();
+          
+          if (data.products && data.products.length > 0) {
+            this.processProductsChunk(data.products, false);
+            changed = true;
+            page++;
+            if (data.products.length < 250) hasMore = false;
+          } else {
+            hasMore = false;
+          }
+        } catch(e) {
+          hasMore = false;
+        }
+      }
+      if (this.loadingEl) this.loadingEl.style.display = 'none';
+      if (changed) {
+        // One final rebuild and sorted render to finalize data completeness
+        this.buildCategorySidebar(); 
+        this.renderProducts();
+      }
+    }
+
+    processProductsChunk(rawProducts, isFirstRun) {
       // Process raw Shopify product JSON into our working format
-      this.allProducts = rawProducts.map(p => {
+      const newItems = rawProducts.map(p => {
         const variant = p.variants && p.variants[0] ? p.variants[0] : {};
         const price = parseFloat(variant.price) || 0;
         const category = (p.product_type || '').trim();
@@ -183,10 +219,11 @@ if (!customElements.get('product-catalog-section')) {
           ].join(' ')
         };
       });
+      
+      this.allProducts.push(...newItems);
 
-      // Build category map
-      this.allCategories = {};
-      this.allProducts.forEach(p => {
+      // Build or update category map natively
+      newItems.forEach(p => {
         if (p.category) {
           const key = p.category.toLowerCase();
           if (!this.allCategories[key]) {
@@ -196,18 +233,39 @@ if (!customElements.get('product-catalog-section')) {
         }
       });
 
-      // Price range
+      // Update max price range incrementally
       const prices = this.allProducts.map(p => p.price).filter(p => p > 0);
-      this.globalPriceMax = prices.length ? Math.ceil(Math.max(...prices)) : 0;
-      this.priceMax = this.globalPriceMax;
+      const newMax = prices.length ? Math.ceil(Math.max(...prices)) : 0;
+      
+      let maxUpgraded = false;
+      if (newMax > this.globalPriceMax) {
+        const wasAtMax = this.priceMax >= this.globalPriceMax;
+        this.globalPriceMax = newMax;
+        if (wasAtMax || isFirstRun) {
+          this.priceMax = newMax;
+        }
+        maxUpgraded = true;
+      }
 
-      // Build UI
-      this.buildCategorySidebar();
-      this.initPriceFilter();
-      this.renderProducts();
+      if (isFirstRun) {
+        this.buildCategorySidebar();
+        this.initPriceFilter();
+      } else {
+        this.updateCategorySidebarCounts();
+        if (maxUpgraded) this.updatePriceFilterSilently();
+      }
+      
+      // Update the product grid dynamically to provide instant results if they aren't filtering heavily
+      if (this.searchQuery === '' && this.selectedCategories.size === 0 && this.sortBy === 'best-selling') {
+        this.renderProducts();
+      } else if (isFirstRun) {
+        this.renderProducts();
+      }
 
-      // Hide loading
-      if (this.loadingEl) this.loadingEl.style.display = 'none';
+      // Hide loading if first run done
+      if (isFirstRun && this.loadingEl) {
+         if (this.allProducts.length < 250) this.loadingEl.style.display = 'none';
+      }
     }
 
     /* ============================================
@@ -261,6 +319,38 @@ if (!customElements.get('product-catalog-section')) {
           });
         });
       }
+    }
+    
+    updateCategorySidebarCounts() {
+      const catContainer = this.querySelector('[data-category-list]');
+      if (!catContainer) return;
+      
+      Object.entries(this.allCategories).forEach(([key, { name, count }]) => {
+        let li = catContainer.querySelector(`[data-category-item="${key}"]`);
+        if (!li) {
+          li = document.createElement('li');
+          li.className = 'product-catalog__category-item';
+          li.dataset.categoryItem = key;
+          const iconSvg = makeSvg(getCategoryIcon(key), 16);
+          li.innerHTML = `
+            <input type="checkbox" value="${key}" data-category-checkbox id="cat-${key.replace(/[^a-z0-9]/g, '-')}">
+            <span class="product-catalog__category-icon">${iconSvg}</span>
+            <label class="product-catalog__category-name" for="cat-${key.replace(/[^a-z0-9]/g, '-')}">${this.escapeHtml(name)}</label>
+            <span class="product-catalog__category-count">${count}</span>
+          `;
+          catContainer.appendChild(li);
+          const cb = li.querySelector('input');
+          cb.addEventListener('change', () => {
+            if (cb.checked) this.selectedCategories.add(cb.value);
+            else this.selectedCategories.delete(cb.value);
+            this.renderProducts();
+            this.updateFilterCount();
+          });
+        } else {
+          const countEl = li.querySelector('.product-catalog__category-count');
+          if (countEl) countEl.textContent = count;
+        }
+      });
     }
 
     /* ============================================
@@ -492,6 +582,21 @@ if (!customElements.get('product-catalog-section')) {
       this.priceTrackActive.style.width = (maxPct - minPct) + '%';
     }
 
+    updatePriceFilterSilently() {
+      if (!this.priceMinSlider || !this.priceMaxSlider) return;
+      this.priceMinSlider.max = this.globalPriceMax;
+      this.priceMaxSlider.max = this.globalPriceMax;
+      
+      if (this.priceMax >= this.globalPriceMax || parseInt(this.priceMaxSlider.value) >= parseInt(this.priceMaxSlider.max)) {
+        this.priceMaxSlider.value = this.globalPriceMax;
+        this.priceMax = this.globalPriceMax;
+        if (this.priceMaxDisplay) this.priceMaxDisplay.textContent = '$' + this.formatNumber(this.globalPriceMax);
+        const priceMaxLabel = this.querySelector('[data-price-max-label]');
+        if (priceMaxLabel) priceMaxLabel.textContent = '$' + this.formatNumber(this.globalPriceMax);
+      }
+      this.updatePriceTrack();
+    }
+
     /* ============================================
        FILTER RESET
        ============================================ */
@@ -525,7 +630,7 @@ if (!customElements.get('product-catalog-section')) {
       const openBtn = this.querySelector('[data-mobile-filter-open]');
       const closeBtn = this.querySelector('[data-mobile-filter-close]');
       const overlay = this.querySelector('[data-mobile-filter-overlay]');
-      const sidebar = this.querySelector('[data-mobile-filter-sidebar]');
+      const sidebar = this.querySelector('[data-filter-sidebar]');
 
       if (openBtn && sidebar) {
         openBtn.addEventListener('click', () => {
