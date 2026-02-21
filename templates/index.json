@@ -16,14 +16,14 @@
           "type": "quick_chip",
           "settings": {
             "chip_text": "Machine Control",
-            "chip_link": ""
+            "chip_link": "shopify://collections/machine-control"
           }
         },
         "chip2": {
           "type": "quick_chip",
           "settings": {
             "chip_text": "Base + Rover",
-            "chip_link": ""
+            "chip_link": "shopify://collections/base-rover-kits"
           }
         },
         "chip3": {
@@ -37,7 +37,7 @@
           "type": "quick_chip",
           "settings": {
             "chip_text": "Drones",
-            "chip_link": ""
+            "chip_link": "shopify://collections/drone-uas"
           }
         },
         "chip5": {
