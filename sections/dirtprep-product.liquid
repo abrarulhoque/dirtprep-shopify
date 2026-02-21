@@ -81,7 +81,7 @@
           <span class="product-form__error-message"></span>
         </div>
 
-        {%- form 'product', product, id: 'product-form-installment', class: 'form' -%}
+        {%- form 'product', product, id: 'product-form-installment', class: 'form', novalidate: 'novalidate', data-type: 'add-to-cart-form' -%}
           <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" id="dp-variant-id">
 
           {%- unless product.has_only_default_variant -%}
@@ -118,7 +118,7 @@
             <button
               type="submit"
               name="add"
-              class="dp-add-btn"
+              class="dp-add-btn button"
               {% if product.selected_or_first_available_variant.available == false %}disabled{% endif %}
             >
               <span>
@@ -128,6 +128,7 @@
                   Out of Stock
                 {%- endif -%}
               </span>
+              {%- render 'loading-spinner' -%}
             </button>
           </div>
         {%- endform -%}
